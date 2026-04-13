@@ -29,7 +29,6 @@
             height: 600px;
         }
         
-        /* Lớp vẽ véc-tơ siêu chuẩn xác cho toàn bộ bàn cờ */
         .duong_ke_vec_to {
             position: absolute;
             top: 0;
@@ -57,34 +56,51 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 26px;
+            font-size: 28px;
             font-family: "SimSun", "HanWangYen", serif;
-            background-color: #fff;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.6);
             user-select: none;
             transition: all 0.2s ease;
         }
         
-        /* Chỉnh màu Xanh Dương và Đỏ tương phản rõ rệt */
-        .chu_mau_xanh { color: #0000cd; border: 2px solid #0000cd; } 
-        .chu_mau_do { color: #dc143c; border: 2px solid #dc143c; } 
+        /* CẬP NHẬT MÀU SẮC ĐÚNG YÊU CẦU: Nền Đỏ chữ Vàng, Nền Đen chữ Trắng */
+        .chu_mau_den { background-color: #111; color: #fff; border: 2px solid #333; } 
+        .chu_mau_do { background-color: #cc0000; color: #FFD700; border: 2px solid #8b0000; } 
         
-        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 12px #ff8c00; transform: scale(1.1); }
-        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #333; text-transform: uppercase;}
+        .dang_duoc_chon { box-shadow: 0 0 15px #00ff00, inset 0 0 10px #00ff00; transform: scale(1.1); }
+        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 24px; font-weight: bold; color: #333; text-transform: uppercase; text-align: center;}
+        
+        /* Bảng hiển thị nút chơi lại */
+        #nut_choi_lai {
+            display: none;
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+        }
+        #nut_choi_lai:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
-    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Xanh)</div>
+    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Đen)</div>
     
     <div class="khung_bao_ngoai">
         <div class="mat_phang_lon" id="vung_ve_hinh">
             </div>
     </div>
+    
+    <button id="nut_choi_lai" onclick="khoi_tao_lai_ban_co()">Chơi lại ván mới</button>
 
     <script>
         // ==========================================
-        // KHỐI 1: CÁC BIẾN CƠ SỞ VÀ TRẠNG THÁI
+        // KHỐI 1: TỪ ĐIỂN VÀ BỐ CỤC KHỞI TẠO
         // ==========================================
         let tu_dien_chu = {
             "D_Xe": "俥", "D_Ma": "傌", "D_Tuong": "相", "D_Si": "仕", 
@@ -93,159 +109,257 @@
             "X_Tuong_C": "將", "X_Phao": "砲", "X_Tot": "卒"
         };
 
-        let mang_luoi_chinh = [
-            ["D_Xe", "D_Ma", "D_Tuong", "D_Si", "D_Tuong_C", "D_Si", "D_Tuong", "D_Ma", "D_Xe"],
-            ["", "", "", "", "", "", "", "", ""],
-            ["", "D_Phao", "", "", "", "", "", "D_Phao", ""],
-            ["D_Tot", "", "D_Tot", "", "D_Tot", "", "D_Tot", "", "D_Tot"],
-            ["", "", "", "", "", "", "", "", ""],
-            ["", "", "", "", "", "", "", "", ""],
-            ["X_Tot", "", "X_Tot", "", "X_Tot", "", "X_Tot", "", "X_Tot"],
-            ["", "X_Phao", "", "", "", "", "", "X_Phao", ""],
-            ["", "", "", "", "", "", "", "", ""],
-            ["X_Xe", "X_Ma", "X_Tuong", "X_Si", "X_Tuong_C", "X_Si", "X_Tuong", "X_Ma", "X_Xe"]
-        ];
+        // Bảng giá trị quân cờ để AI đánh giá thế trận
+        let bang_diem_quan_co = {
+            "Xe": 900, "Phao": 450, "Ma": 400, "Tuong": 200, "Si": 200, "Tot": 100, "Tuong_C": 10000
+        };
 
+        let mang_luoi_chinh = [];
         let nguoi_dang_cam_co = "X"; 
         let vi_tri_hang_chon = -1;
         let vi_tri_cot_chon = -1;
+        let trang_thai_tro_choi = "DANG_CHOI";
 
-        // ==========================================
-        // KHỐI 2: TÍNH TOÁN LOGIC VÀ KIỂM TRA LUẬT CỜ
-        // ==========================================
-        function xet_duong_thang_trong(ban_co_kiem_tra, h1, c1, h2, c2) {
-            let dem_vat_can = 0;
-            if (h1 === h2) {
-                let min_c = Math.min(c1, c2);
-                let max_c = Math.max(c1, c2);
-                for (let c = min_c + 1; c < max_c; c++) if (ban_co_kiem_tra[h1][c] !== "") dem_vat_can++;
-            } else if (c1 === c2) {
-                let min_h = Math.min(h1, h2);
-                let max_h = Math.max(h1, h2);
-                for (let h = min_h + 1; h < max_h; h++) if (ban_co_kiem_tra[h][c1] !== "") dem_vat_can++;
-            }
-            return dem_vat_can;
+        function khoi_tao_lai_ban_co() {
+            mang_luoi_chinh = [
+                ["D_Xe", "D_Ma", "D_Tuong", "D_Si", "D_Tuong_C", "D_Si", "D_Tuong", "D_Ma", "D_Xe"],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "D_Phao", "", "", "", "", "", "D_Phao", ""],
+                ["D_Tot", "", "D_Tot", "", "D_Tot", "", "D_Tot", "", "D_Tot"],
+                ["", "", "", "", "", "", "", "", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["X_Tot", "", "X_Tot", "", "X_Tot", "", "X_Tot", "", "X_Tot"],
+                ["", "X_Phao", "", "", "", "", "", "X_Phao", ""],
+                ["", "", "", "", "", "", "", "", ""],
+                ["X_Xe", "X_Ma", "X_Tuong", "X_Si", "X_Tuong_C", "X_Si", "X_Tuong", "X_Ma", "X_Xe"]
+            ];
+            nguoi_dang_cam_co = "X";
+            trang_thai_tro_choi = "DANG_CHOI";
+            vi_tri_hang_chon = -1;
+            vi_tri_cot_chon = -1;
+            document.getElementById("nut_choi_lai").style.display = "none";
+            kiem_tra_trang_thai_tran_dau();
+            ve_lai_toan_bo();
         }
 
-        function kiem_tra_lo_mat_tuong(ban_co_thu_nghiem) {
-            let c_tuong_do = -1, h_tuong_do = -1;
-            let c_tuong_xanh = -1, h_tuong_xanh = -1;
+        // ==========================================
+        // KHỐI 2: HỆ THỐNG LUẬT CỜ VÀ NHẬN DIỆN CHIẾU BÍ
+        // ==========================================
+        function xet_duong_thang_trong(ban_co, h1, c1, h2, c2) {
+            let dem = 0;
+            if (h1 === h2) {
+                for (let c = Math.min(c1, c2) + 1; c < Math.max(c1, c2); c++) if (ban_co[h1][c] !== "") dem++;
+            } else if (c1 === c2) {
+                for (let h = Math.min(h1, h2) + 1; h < Math.max(h1, h2); h++) if (ban_co[h][c1] !== "") dem++;
+            }
+            return dem;
+        }
+
+        function kiem_tra_lo_mat_tuong(ban_co) {
+            let hd = -1, cd = -1, hx = -1, cx = -1;
             for (let h = 0; h < 10; h++) {
                 for (let c = 3; c <= 5; c++) {
-                    if (ban_co_thu_nghiem[h][c] === "D_Tuong_C") { h_tuong_do = h; c_tuong_do = c; }
-                    if (ban_co_thu_nghiem[h][c] === "X_Tuong_C") { h_tuong_xanh = h; c_tuong_xanh = c; }
+                    if (ban_co[h][c] === "D_Tuong_C") { hd = h; cd = c; }
+                    if (ban_co[h][c] === "X_Tuong_C") { hx = h; cx = c; }
                 }
             }
-            if (c_tuong_do === c_tuong_xanh && c_tuong_do !== -1) {
-                let dem_vat_can = 0;
-                for (let h = h_tuong_do + 1; h < h_tuong_xanh; h++) {
-                    if (ban_co_thu_nghiem[h][c_tuong_do] !== "") dem_vat_can++;
-                }
-                if (dem_vat_can === 0) return true;
+            if (cd === cx && cd !== -1) {
+                let dem = 0;
+                for (let h = hd + 1; h < hx; h++) if (ban_co[h][cd] !== "") dem++;
+                if (dem === 0) return true;
             }
             return false;
         }
 
-        function xet_tinh_hop_le_cua_buoc_chan(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich, phe_cam_quan) {
-            let quan_chon = ban_co_hien_tai[hang_goc][cot_goc];
-            let quan_dich = ban_co_hien_tai[hang_dich][cot_dich];
+        function xet_luat_di_chuyen(ban_co, h_goc, c_goc, h_dich, c_dich, phe) {
+            let quan_goc = ban_co[h_goc][c_goc];
+            let quan_dich = ban_co[h_dich][c_dich];
 
-            if (hang_goc === hang_dich && cot_goc === cot_dich) return false;
-            if (quan_dich !== "" && quan_dich.startsWith(phe_cam_quan)) return false;
+            if (h_goc === h_dich && c_goc === c_dich) return false;
+            if (quan_dich !== "" && quan_dich.startsWith(phe)) return false;
 
-            let loai_hinh_quan = quan_chon.substring(2);
-            let lech_hang = hang_dich - hang_goc;
-            let lech_cot = cot_dich - cot_goc;
-            let khoang_cach_hang = Math.abs(lech_hang);
-            let khoang_cach_cot = Math.abs(lech_cot);
-            let di_dung_luat = false;
+            let loai_quan = quan_goc.substring(2);
+            let k_hang = Math.abs(h_dich - h_goc);
+            let k_cot = Math.abs(c_dich - c_goc);
 
-            if (loai_hinh_quan === "Xe") {
-                if (khoang_cach_hang === 0 || khoang_cach_cot === 0) {
-                    if (xet_duong_thang_trong(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich) === 0) di_dung_luat = true;
+            if (loai_quan === "Xe") {
+                if ((k_hang === 0 || k_cot === 0) && xet_duong_thang_trong(ban_co, h_goc, c_goc, h_dich, c_dich) === 0) return true;
+            } else if (loai_quan === "Phao") {
+                let vat_can = xet_duong_thang_trong(ban_co, h_goc, c_goc, h_dich, c_dich);
+                if (k_hang === 0 || k_cot === 0) {
+                    if (quan_dich === "" && vat_can === 0) return true;
+                    if (quan_dich !== "" && vat_can === 1) return true;
+                }
+            } else if (loai_quan === "Ma") {
+                if (k_hang === 2 && k_cot === 1 && ban_co[h_goc + (h_dich-h_goc)/2][c_goc] === "") return true;
+                if (k_hang === 1 && k_cot === 2 && ban_co[h_goc][c_goc + (c_dich-c_goc)/2] === "") return true;
+            } else if (loai_quan === "Tuong") {
+                if (k_hang === 2 && k_cot === 2) {
+                    if ((phe === "X" && h_dich <= 4) || (phe === "D" && h_dich >= 5)) return false; // Không qua sông
+                    if (ban_co[h_goc + (h_dich-h_goc)/2][c_goc + (c_dich-c_goc)/2] === "") return true;
+                }
+            } else if (loai_quan === "Si") {
+                if (k_hang === 1 && k_cot === 1 && c_dich >= 3 && c_dich <= 5) {
+                    if ((phe === "X" && h_dich >= 7) || (phe === "D" && h_dich <= 2)) return true;
+                }
+            } else if (loai_quan === "Tuong_C") {
+                if ((k_hang === 1 && k_cot === 0) || (k_hang === 0 && k_cot === 1)) {
+                    if (c_dich >= 3 && c_dich <= 5 && ((phe === "X" && h_dich >= 7) || (phe === "D" && h_dich <= 2))) return true;
+                }
+            } else if (loai_quan === "Tot") {
+                let tien = (phe === "X") ? -1 : 1;
+                let qua_song = (phe === "X") ? (h_goc <= 4) : (h_goc >= 5);
+                if (h_dich - h_goc === tien && k_cot === 0) return true;
+                if (qua_song && k_hang === 0 && k_cot === 1) return true;
+            }
+            return false;
+        }
+
+        // Kiểm tra xem bước đi có khiến Tướng phe mình bị ăn không
+        function buoc_di_an_toan(ban_co, h_goc, c_goc, h_dich, c_dich, phe) {
+            if (!xet_luat_di_chuyen(ban_co, h_goc, c_goc, h_dich, c_dich, phe)) return false;
+            
+            // Giả lập nước đi
+            let ban_co_gia = JSON.parse(JSON.stringify(ban_co));
+            ban_co_gia[h_dich][c_dich] = ban_co_gia[h_goc][c_goc];
+            ban_co_gia[h_goc][c_goc] = "";
+
+            if (kiem_tra_lo_mat_tuong(ban_co_gia)) return false;
+
+            // Kiểm tra xem đối phương có ăn được Tướng của mình ở lượt sau không
+            let phe_dich = (phe === "X") ? "D" : "X";
+            let h_tuong = -1, c_tuong = -1;
+            
+            for (let h = 0; h < 10; h++) {
+                for (let c = 0; c < 9; c++) {
+                    if (ban_co_gia[h][c] === phe + "_Tuong_C") { h_tuong = h; c_tuong = c; }
                 }
             }
-            else if (loai_hinh_quan === "Phao") {
-                if (khoang_cach_hang === 0 || khoang_cach_cot === 0) {
-                    let so_vat_can = xet_duong_thang_trong(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich);
-                    if (quan_dich === "") { if (so_vat_can === 0) di_dung_luat = true; } 
-                    else { if (so_vat_can === 1) di_dung_luat = true; } 
-                }
-            }
-            else if (loai_hinh_quan === "Ma") {
-                if (khoang_cach_hang === 2 && khoang_cach_cot === 1) {
-                    if (ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc] === "") di_dung_luat = true; 
-                } else if (khoang_cach_hang === 1 && khoang_cach_cot === 2) {
-                    if (ban_co_hien_tai[hang_goc][cot_goc + lech_cot/2] === "") di_dung_luat = true;
-                }
-            }
-            else if (loai_hinh_quan === "Tuong") {
-                if (khoang_cach_hang === 2 && khoang_cach_cot === 2) {
-                    let qua_song = (phe_cam_quan === "X" && hang_dich <= 4) || (phe_cam_quan === "D" && hang_dich >= 5);
-                    if (!qua_song && ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc + lech_cot/2] === "") di_dung_luat = true; 
-                }
-            }
-            else if (loai_hinh_quan === "Si") {
-                if (khoang_cach_hang === 1 && khoang_cach_cot === 1) {
-                    if (cot_dich >= 3 && cot_dich <= 5) {
-                        if ((phe_cam_quan === "X" && hang_dich >= 7) || (phe_cam_quan === "D" && hang_dich <= 2)) di_dung_luat = true;
+
+            for (let h = 0; h < 10; h++) {
+                for (let c = 0; c < 9; c++) {
+                    if (ban_co_gia[h][c].startsWith(phe_dich)) {
+                        if (xet_luat_di_chuyen(ban_co_gia, h, c, h_tuong, c_tuong, phe_dich)) return false; // Bị chiếu
                     }
                 }
             }
-            else if (loai_hinh_quan === "Tuong_C") {
-                if ((khoang_cach_hang === 1 && khoang_cach_cot === 0) || (khoang_cach_hang === 0 && khoang_cach_cot === 1)) {
-                    if (cot_dich >= 3 && cot_dich <= 5) {
-                        if ((phe_cam_quan === "X" && hang_dich >= 7) || (phe_cam_quan === "D" && hang_dich <= 2)) di_dung_luat = true;
-                    }
-                }
-            }
-            else if (loai_hinh_quan === "Tot") {
-                if (phe_cam_quan === "X") {
-                    if (hang_goc > 4) { 
-                        if (lech_hang === -1 && khoang_cach_cot === 0) di_dung_luat = true;
-                    } else { 
-                        if ((lech_hang === -1 && khoang_cach_cot === 0) || (lech_hang === 0 && khoang_cach_cot === 1)) di_dung_luat = true;
-                    }
-                } else {
-                    if (hang_goc < 5) { 
-                        if (lech_hang === 1 && khoang_cach_cot === 0) di_dung_luat = true;
-                    } else { 
-                        if ((lech_hang === 1 && khoang_cach_cot === 0) || (lech_hang === 0 && khoang_cach_cot === 1)) di_dung_luat = true;
-                    }
-                }
-            }
-
-            if (!di_dung_luat) return false;
-
-            let ban_co_tam_thoi = JSON.parse(JSON.stringify(ban_co_hien_tai));
-            ban_co_tam_thoi[hang_dich][cot_dich] = ban_co_tam_thoi[hang_goc][cot_goc];
-            ban_co_tam_thoi[hang_goc][cot_goc] = "";
-            if (kiem_tra_lo_mat_tuong(ban_co_tam_thoi)) return false;
-
             return true;
         }
 
+        // Sinh danh sách tất cả các nước đi KHÔNG BỊ CHIẾU
+        function lay_danh_sach_nuoc_di_hop_le(ban_co, phe) {
+            let danh_sach = [];
+            for (let h_goc = 0; h_goc < 10; h_goc++) {
+                for (let c_goc = 0; c_goc < 9; c_goc++) {
+                    if (ban_co[h_goc][c_goc].startsWith(phe)) {
+                        for (let h_dich = 0; h_dich < 10; h_dich++) {
+                            for (let c_dich = 0; c_dich < 9; c_dich++) {
+                                if (buoc_di_an_toan(ban_co, h_goc, c_goc, h_dich, c_dich, phe)) {
+                                    danh_sach.push({ h_goc: h_goc, c_goc: c_goc, h_dich: h_dich, c_dich: c_dich });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return danh_sach;
+        }
+
+        function kiem_tra_trang_thai_tran_dau() {
+            let nuoc_di_cua_nguoi = lay_danh_sach_nuoc_di_hop_le(mang_luoi_chinh, "X");
+            let nuoc_di_cua_may = lay_danh_sach_nuoc_di_hop_le(mang_luoi_chinh, "D");
+
+            if (nguoi_dang_cam_co === "X" && nuoc_di_cua_nguoi.length === 0) {
+                trang_thai_tro_choi = "HET_CO_MAY_THANG";
+            } else if (nguoi_dang_cam_co === "D" && nuoc_di_cua_may.length === 0) {
+                trang_thai_tro_choi = "HET_CO_NGUOI_THANG";
+            }
+
+            if (trang_thai_tro_choi.includes("HET_CO")) {
+                document.getElementById("nut_choi_lai").style.display = "block";
+            }
+        }
+
         // ==========================================
-        // KHỐI 3: VẼ GIAO DIỆN HÌNH HỌC CHUẨN XÁC
+        // KHỐI 3: HỆ THỐNG TRÍ TUỆ NHÂN TẠO (MINIMAX)
+        // ==========================================
+        function danh_gia_the_co(ban_co) {
+            let diem_do = 0;
+            let diem_xanh = 0;
+            for (let h = 0; h < 10; h++) {
+                for (let c = 0; c < 9; c++) {
+                    let quan = ban_co[h][c];
+                    if (quan !== "") {
+                        let gia_tri = bang_diem_quan_co[quan.substring(2)];
+                        if (quan.startsWith("D")) diem_do += gia_tri;
+                        if (quan.startsWith("X")) diem_xanh += gia_tri;
+                    }
+                }
+            }
+            return diem_do - diem_xanh; // AI là Đỏ, muốn tối đa hóa điểm này
+        }
+
+        function may_tinh_suy_nghi() {
+            if (trang_thai_tro_choi !== "DANG_CHOI") return;
+
+            let danh_sach_di = lay_danh_sach_nuoc_di_hop_le(mang_luoi_chinh, "D");
+            if (danh_sach_di.length === 0) {
+                trang_thai_tro_choi = "HET_CO_NGUOI_THANG";
+                ve_lai_toan_bo();
+                document.getElementById("nut_choi_lai").style.display = "block";
+                return;
+            }
+
+            // Thuật toán Minimax đơn giản độ sâu 1 (Greedy - Ưu tiên ăn quân điểm cao nhất hoặc đi an toàn)
+            let nuoc_di_tot_nhat = null;
+            let diem_cao_nhat = -Infinity;
+
+            // Xáo trộn danh sách để tránh AI đi rập khuôn
+            danh_sach_di.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < danh_sach_di.length; i++) {
+                let nd = danh_sach_di[i];
+                let ban_co_thu = JSON.parse(JSON.stringify(mang_luoi_chinh));
+                ban_co_thu[nd.h_dich][nd.c_dich] = ban_co_thu[nd.h_goc][nd.c_goc];
+                ban_co_thu[nd.h_goc][nd.c_goc] = "";
+
+                let diem_hien_tai = danh_gia_the_co(ban_co_thu);
+                
+                // Cố gắng cứu tướng nếu bị đe dọa (Đã được chặn bởi lấy_danh_sách_nước_đi_hợp_lệ)
+                if (diem_hien_tai > diem_cao_nhat) {
+                    diem_cao_nhat = diem_hien_tai;
+                    nuoc_di_tot_nhat = nd;
+                }
+            }
+
+            // Thực hiện nước đi
+            if (nuoc_di_tot_nhat) {
+                mang_luoi_chinh[nuoc_di_tot_nhat.h_dich][nuoc_di_tot_nhat.c_dich] = mang_luoi_chinh[nuoc_di_tot_nhat.h_goc][nuoc_di_tot_nhat.c_goc];
+                mang_luoi_chinh[nuoc_di_tot_nhat.h_goc][nuoc_di_tot_nhat.c_goc] = "";
+            }
+
+            nguoi_dang_cam_co = "X";
+            kiem_tra_trang_thai_tran_dau();
+            ve_lai_toan_bo();
+        }
+
+        // ==========================================
+        // KHỐI 4: VẼ GIAO DIỆN HÌNH HỌC CHUẨN XÁC
         // ==========================================
         function ve_lai_toan_bo() {
             let vung_chua = document.getElementById("vung_ve_hinh");
             vung_chua.innerHTML = ""; 
 
-            // Bản vẽ Véc-tơ nền
+            // Bản vẽ Véc-tơ nền SVG
             let html_vec_to = `<svg class="duong_ke_vec_to" width="540" height="600">`;
-
-            // Viền kép ngoài cùng
             html_vec_to += `<rect x="25" y="25" width="490" height="550" fill="none" stroke="#000" stroke-width="4"/>`;
             html_vec_to += `<rect x="30" y="30" width="480" height="540" fill="none" stroke="#000" stroke-width="2"/>`;
 
-            // 10 đường ngang
             for(let i = 0; i < 10; i++) {
                 let y = 30 + i * 60;
                 html_vec_to += `<line x1="30" y1="${y}" x2="510" y2="${y}" stroke="#000" stroke-width="2"/>`;
             }
 
-            // 9 đường dọc (trừ phần Sông)
             for(let i = 0; i < 9; i++) {
                 let x = 30 + i * 60;
                 if(i === 0 || i === 8) {
@@ -256,25 +370,22 @@
                 }
             }
 
-            // Đường chéo Hán Cung
             html_vec_to += `<line x1="210" y1="30" x2="330" y2="150" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="330" y1="30" x2="210" y2="150" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="210" y1="450" x2="330" y2="570" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="330" y1="450" x2="210" y2="570" stroke="#000" stroke-width="2"/>`;
 
-            // Hoa thị cho Pháo và Tốt
             let vi_tri_hoa_thi = [
-                [2,1], [2,7], [7,1], [7,7], // Pháo
-                [3,0], [3,2], [3,4], [3,6], [3,8], // Tốt Đỏ
-                [6,0], [6,2], [6,4], [6,6], [6,8]  // Tốt Xanh
+                [2,1], [2,7], [7,1], [7,7], 
+                [3,0], [3,2], [3,4], [3,6], [3,8], 
+                [6,0], [6,2], [6,4], [6,6], [6,8]  
             ];
 
             vi_tri_hoa_thi.forEach(vt => {
                 let h = vt[0], c = vt[1];
                 let x = 30 + c * 60;
                 let y = 30 + h * 60;
-                let d = 5; // Khoảng cách từ tâm
-                let l = 10; // Độ dài nét vuông
+                let d = 5, l = 10; 
 
                 if (c > 0) {
                     html_vec_to += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
@@ -286,11 +397,9 @@
                 }
             });
 
-            // Chữ dòng Sông
             html_vec_to += `<text x="270" y="308" font-size="28" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="8">NGỌC LÂM THÁCH ĐẤU</text>`;
             html_vec_to += `</svg>`;
             
-            // Chèn SVG vào DOM
             vung_chua.insertAdjacentHTML('beforeend', html_vec_to);
 
             // Bố trí quân cờ
@@ -305,7 +414,7 @@
                         let cuc_hinh = document.createElement("div");
                         let phe_mau = gia_tri_o.split("_")[0]; 
 
-                        cuc_hinh.className = "cuc_tron_co " + (phe_mau === "X" ? "chu_mau_xanh" : "chu_mau_do");
+                        cuc_hinh.className = "cuc_tron_co " + (phe_mau === "X" ? "chu_mau_den" : "chu_mau_do");
                         cuc_hinh.innerText = tu_dien_chu[gia_tri_o]; 
 
                         if (hang === vi_tri_hang_chon && cot === vi_tri_cot_chon) {
@@ -317,18 +426,26 @@
                 }
             }
 
-            // Cập nhật trạng thái
+            // Cập nhật câu thông báo
             let chu_bao = document.getElementById("dong_chu_bao_cao");
-            if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Xanh)";
-            else if (nguoi_dang_cam_co === "D") chu_bao.innerText = "Lượt của: Máy tính (Đỏ đang suy nghĩ...)";
-            else chu_bao.innerText = "HẾT CỜ!";
+            if (trang_thai_tro_choi === "HET_CO_MAY_THANG") {
+                chu_bao.innerText = "CHIẾU BÍ! BẠN ĐÃ THUA.";
+                chu_bao.style.color = "#dc143c";
+            } else if (trang_thai_tro_choi === "HET_CO_NGUOI_THANG") {
+                chu_bao.innerText = "CHIẾU BÍ! BẠN ĐÃ CHIẾN THẮNG.";
+                chu_bao.style.color = "#28a745";
+            } else {
+                chu_bao.style.color = "#333";
+                if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Đen)";
+                else chu_bao.innerText = "Lượt của: Máy tính (Đỏ đang nghĩ...)";
+            }
         }
 
         // ==========================================
-        // KHỐI 4: TƯƠNG TÁC NGƯỜI DÙNG
+        // KHỐI 5: TƯƠNG TÁC NGƯỜI DÙNG
         // ==========================================
         function xu_ly_cham_tay(hang_bam, cot_bam) {
-            if (nguoi_dang_cam_co !== "X") return; 
+            if (nguoi_dang_cam_co !== "X" || trang_thai_tro_choi !== "DANG_CHOI") return; 
 
             let gia_tri_dich = mang_luoi_chinh[hang_bam][cot_bam];
 
@@ -353,59 +470,26 @@
                     return;
                 }
 
-                if (xet_tinh_hop_le_cua_buoc_chan(mang_luoi_chinh, vi_tri_hang_chon, vi_tri_cot_chon, hang_bam, cot_bam, "X")) {
+                if (buoc_di_an_toan(mang_luoi_chinh, vi_tri_hang_chon, vi_tri_cot_chon, hang_bam, cot_bam, "X")) {
                     mang_luoi_chinh[hang_bam][cot_bam] = mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon];
                     mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon] = "";
                     
                     vi_tri_hang_chon = -1;
                     vi_tri_cot_chon = -1;
                     nguoi_dang_cam_co = "D";
+                    
+                    kiem_tra_trang_thai_tran_dau();
                     ve_lai_toan_bo();
 
-                    setTimeout(may_tu_dong_chay, 600);
-                }
-            }
-        }
-
-        // ==========================================
-        // KHỐI 5: HỆ THỐNG MÁY TÍNH PHẢN HỒI (AI)
-        // ==========================================
-        function may_tu_dong_chay() {
-            let danh_sach_buoc_di_hop_le = [];
-            
-            for (let h_goc = 0; h_goc < 10; h_goc++) {
-                for (let c_goc = 0; c_goc < 9; c_goc++) {
-                    if (mang_luoi_chinh[h_goc][c_goc].startsWith("D")) {
-                        for (let h_dich = 0; h_dich < 10; h_dich++) {
-                            for (let c_dich = 0; c_dich < 9; c_dich++) {
-                                if (xet_tinh_hop_le_cua_buoc_chan(mang_luoi_chinh, h_goc, c_goc, h_dich, c_dich, "D")) {
-                                    danh_sach_buoc_di_hop_le.push({
-                                        tu_h: h_goc, tu_c: c_goc,
-                                        den_h: h_dich, den_c: c_dich
-                                    });
-                                }
-                            }
-                        }
+                    if (trang_thai_tro_choi === "DANG_CHOI") {
+                        setTimeout(may_tinh_suy_nghi, 400);
                     }
                 }
             }
-
-            if (danh_sach_buoc_di_hop_le.length > 0) {
-                let chon_ngau_nhien = danh_sach_buoc_di_hop_le[Math.floor(Math.random() * danh_sach_buoc_di_hop_le.length)];
-                
-                mang_luoi_chinh[chon_ngau_nhien.den_h][chon_ngau_nhien.den_c] = mang_luoi_chinh[chon_ngau_nhien.tu_h][chon_ngau_nhien.tu_c];
-                mang_luoi_chinh[chon_ngau_nhien.tu_h][chon_ngau_nhien.tu_c] = "";
-                
-                nguoi_dang_cam_co = "X";
-            } else {
-                nguoi_dang_cam_co = "HET_CO"; 
-            }
-            
-            ve_lai_toan_bo();
         }
 
         // Khởi động
-        ve_lai_toan_bo();
+        khoi_tao_lai_ban_co();
 
     </script>
 </body>
