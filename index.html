@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ngọc Lâm Thách Đấu</title>
+    <title>Giao Lưu Cờ Tướng - Ngọc Lâm Thách Đấu</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f8f9fa;
+            background-color: #f4f4f4;
             margin-top: 20px;
         }
         .khung_bao_ngoai {
             background-color: #faf0e6; 
             padding: 30px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-            border-radius: 10px;
-            border: 2px solid #8b4513;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border-radius: 8px;
+            border: 1px solid #8b4513;
         }
         .mat_phang_lon {
             display: grid;
@@ -46,7 +46,6 @@
             position: relative;
             z-index: 1; 
         }
-        /* QUÂN CỜ CÁCH ĐIỆU CAO CẤP */
         .cuc_tron_co {
             width: 54px;
             height: 54px;
@@ -57,17 +56,16 @@
             font-weight: bold;
             font-size: 30px;
             font-family: "SimSun", "HanWangYen", serif;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
             user-select: none;
             transition: all 0.2s ease;
         }
-        /* Nền Đen chữ Trắng cho Người chơi */
-        .loai_quan_den { background-color: #1a1a1a; color: #ffffff; border: 2px solid #555; } 
-        /* Nền Đỏ chữ Vàng cho AI */
-        .loai_quan_do { background-color: #b30000; color: #ffd700; border: 2px solid #8b0000; } 
+        /* PHONG CÁCH QUÂN CỜ CỦA THẦY: ĐỎ-VÀNG & ĐEN-TRẮNG */
+        .phe_den { background-color: #1a1a1a; color: #ffffff; border: 2px solid #555; } 
+        .phe_do { background-color: #b30000; color: #ffd700; border: 2px solid #8b0000; } 
         
         .dang_duoc_chon { transform: scale(1.1); box-shadow: 0 0 20px #2ecc71; border-color: #2ecc71; }
-        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 28px; font-weight: bold; color: #2c3e50; text-transform: uppercase; text-align: center; }
+        .khu_vuc_thong_bao { margin-bottom: 25px; font-size: 28px; font-weight: bold; color: #2c3e50; text-transform: uppercase; text-align: center; }
         
         #nut_reset {
             margin-top: 25px;
@@ -82,7 +80,7 @@
             display: none;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        #nut_reset:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+        #nut_reset:hover { background-color: #219150; }
     </style>
 </head>
 <body>
@@ -93,26 +91,26 @@
         <div class="mat_phang_lon" id="vung_ve_hinh"></div>
     </div>
     
-    <button id="nut_reset" onclick="khoi_tao_he_thong()">Bắt đầu ván mới</button>
+    <button id="nut_reset" onclick="khoi_tao_lai()">Bắt đầu ván mới</button>
 
     <script>
         // ==========================================
-        // KHỐI 1: QUẢN LÝ DỮ LIỆU VÀ CẤU HÌNH AI
+        // KHỐI 1: CẤU HÌNH VÀ BỐ CỤC
         // ==========================================
-        const tu_hien_thi = {
+        const tu_dien_chu_han = {
             "D_Xe": "俥", "D_Ma": "傌", "D_Tuong": "相", "D_Si": "仕", "D_Vua": "帥", "D_Phao": "炮", "D_Tot": "兵",
             "X_Xe": "車", "X_Ma": "馬", "X_Tuong": "象", "X_Si": "士", "X_Vua": "將", "X_Phao": "砲", "X_Tot": "卒"
         };
 
-        const diem_so_quan = { "Xe": 900, "Phao": 450, "Ma": 400, "Tuong": 200, "Si": 200, "Tot": 100, "Vua": 20000 };
+        const gia_tri_quan = { "Xe": 900, "Phao": 450, "Ma": 400, "Tuong": 200, "Si": 200, "Tot": 100, "Vua": 20000 };
 
-        let ma_tran_co = [];
+        let mang_co = [];
         let luot_di = "X"; 
-        let hang_dang_chon = -1, cot_dang_chon = -1;
-        let da_ket_thuc = false;
+        let h_chon = -1, c_chon = -1;
+        let game_over = false;
 
-        function khoi_tao_he_thong() {
-            ma_tran_co = [
+        function khoi_tao_lai() {
+            mang_co = [
                 ["D_Xe", "D_Ma", "D_Tuong", "D_Si", "D_Vua", "D_Si", "D_Tuong", "D_Ma", "D_Xe"],
                 ["", "", "", "", "", "", "", "", ""],
                 ["", "D_Phao", "", "", "", "", "", "D_Phao", ""],
@@ -124,40 +122,39 @@
                 ["", "", "", "", "", "", "", "", ""],
                 ["X_Xe", "X_Ma", "X_Tuong", "X_Si", "X_Vua", "X_Si", "X_Tuong", "X_Ma", "X_Xe"]
             ];
-            luot_di = "X";
-            da_ket_thuc = false;
-            hang_dang_chon = -1; cot_dang_chon = -1;
+            luot_di = "X"; game_over = false;
+            h_chon = -1; c_chon = -1;
             document.getElementById("nut_reset").style.display = "none";
-            ve_giao_dien();
+            ve_ban_co();
         }
 
         // ==========================================
-        // KHỐI 2: LOGIC LUẬT CHƠI CHI TIẾT
+        // KHỐI 2: LUẬT CHƠI VÀ KIỂM TRA CHIẾU BÍ
         // ==========================================
         function dem_vat_can(ban_co, h1, c1, h2, c2) {
-            let dem = 0;
+            let n = 0;
             if (h1 === h2) {
-                for (let c = Math.min(c1, c2) + 1; c < Math.max(c1, c2); c++) if (ban_co[h1][c] !== "") dem++;
+                for (let c = Math.min(c1, c2) + 1; c < Math.max(c1, c2); c++) if (ban_co[h1][c] !== "") n++;
             } else if (c1 === c2) {
-                for (let h = Math.min(h1, h2) + 1; h < Math.max(h1, h2); h++) if (ban_co[h][c1] !== "") dem++;
+                for (let h = Math.min(h1, h2) + 1; h < Math.max(h1, h2); h++) if (ban_co[h][c1] !== "") n++;
             }
-            return dem;
+            return n;
         }
 
-        function luat_di_chuyen(ban_co, hg, cg, hd, cd, phe) {
-            let q_goc = ban_co[hg][cg];
-            let q_dich = ban_co[hd][cd];
-            if (q_dich !== "" && q_dich.startsWith(phe)) return false;
+        function xet_luat_di(ban_co, hg, cg, hd, cd, phe) {
+            let qg = ban_co[hg][cg];
+            let qd = ban_co[hd][cd];
+            if (qd !== "" && qd.startsWith(phe)) return false;
 
-            let loai = q_goc.substring(2);
+            let l = qg.substring(2);
             let kh = Math.abs(hd - hg);
             let kc = Math.abs(cd - cg);
 
-            switch(loai) {
+            switch(l) {
                 case "Xe": return (kh === 0 || kc === 0) && dem_vat_can(ban_co, hg, cg, hd, cd) === 0;
                 case "Phao": 
-                    let vc = dem_vat_can(ban_co, hg, cg, hd, cd);
-                    return (kh === 0 || kc === 0) && ((q_dich === "" && vc === 0) || (q_dich !== "" && vc === 1));
+                    let v = dem_vat_can(ban_co, hg, cg, hd, cd);
+                    return (kh === 0 || kc === 0) && ((qd === "" && v === 0) || (qd !== "" && v === 1));
                 case "Ma":
                     if (kh === 2 && kc === 1 && ban_co[hg + (hd-hg)/2][cg] === "") return true;
                     if (kh === 1 && kc === 2 && ban_co[hg][cg + (cd-cg)/2] === "") return true;
@@ -179,8 +176,8 @@
             return false;
         }
 
-        function nuoc_di_an_toan(ban_co, hg, cg, hd, cd, phe) {
-            if (!luat_di_chuyen(ban_co, hg, cg, hd, cd, phe)) return false;
+        function nuoc_di_hop_le(ban_co, hg, cg, hd, cd, phe) {
+            if (!xet_luat_di(ban_co, hg, cg, hd, cd, phe)) return false;
             let gia_lap = JSON.parse(JSON.stringify(ban_co));
             gia_lap[hd][cd] = gia_lap[hg][cg]; gia_lap[hg][cg] = "";
             
@@ -192,64 +189,60 @@
             }
             if(cd_v === cx_v && dem_vat_can(gia_lap, hd_v, cd_v, hx_v, cx_v) === 0) return false;
 
-            // Kiểm tra bị chiếu sau khi đi
-            let phe_dich = (phe === "X") ? "D" : "X";
+            // Kiểm tra bị chiếu
+            let dich = (phe === "X") ? "D" : "X";
             let hv = -1, cv = -1;
             for(let h=0; h<10; h++) for(let c=0; c<9; c++) if(gia_lap[h][c] === phe+"_Vua") { hv=h; cv=c; }
-            for(let h=0; h<10; h++) for(let c=0; c<9; c++) if(gia_lap[h][c].startsWith(phe_dich)) 
-                if(luat_di_chuyen(gia_lap, h, c, hv, cv, phe_dich)) return false;
+            for(let h=0; h<10; h++) for(let c=0; c<9; c++) if(gia_lap[h][c].startsWith(dich)) 
+                if(xet_luat_di(gia_lap, h, c, hv, cv, dich)) return false;
             return true;
         }
 
-        function quet_nuoc_di_hop_le(ban_co, phe) {
+        function tim_moi_nuoc_di(ban_co, phe) {
             let ds = [];
             for(let hg=0; hg<10; hg++) for(let cg=0; cg<9; cg++) if(ban_co[hg][cg].startsWith(phe))
                 for(let hd=0; hd<10; hd++) for(let cd=0; cd<9; cd++) 
-                    if(nuoc_di_an_toan(ban_co, hg, cg, hd, cd, phe)) ds.push({hg, cg, hd, cd});
+                    if(nuoc_di_hop_le(ban_co, hg, cg, hd, cd, phe)) ds.push({hg, cg, hd, cd});
             return ds;
         }
 
         // ==========================================
         // KHỐI 3: TRÍ TUỆ NHÂN TẠO (AI)
         // ==========================================
-        function ai_suy_nghi() {
-            if (da_ket_thuc) return;
-            let ds = quet_nuoc_di_hop_le(ma_tran_co, "D");
-            if (ds.length === 0) { xu_ly_thang_thua(false); return; }
+        function ai_lam_viec() {
+            if (game_over) return;
+            let ds = tim_moi_nuoc_di(mang_co, "D");
+            if (ds.length === 0) { xu_ly_ket_thuc(false); return; }
             
-            let tot_nhat = null, diem_max = -Infinity;
+            let best = null, max_score = -Infinity;
             ds.sort(() => Math.random() - 0.5);
-            for(let nd of ds) {
-                let thu = JSON.parse(JSON.stringify(ma_tran_co));
-                let gia_tri_an = (thu[nd.hd][nd.cd] !== "") ? diem_so_quan[thu[nd.hd][nd.cd].substring(2)] : 0;
-                thu[nd.hd][nd.cd] = thu[nd.hg][nd.cg]; thu[nd.hg][nd.cg] = "";
-                
-                let d = gia_tri_an; // Chiến thuật ăn quân điểm cao nhất
-                if(d > diem_max) { diem_max = d; tot_nhat = nd; }
+            for(let n of ds) {
+                let s = (mang_co[n.hd][n.cd] !== "") ? gia_tri_quan[mang_co[n.hd][n.cd].substring(2)] : 0;
+                if(s > max_score) { max_score = s; best = n; }
             }
             
-            ma_tran_co[tot_nhat.hd][tot_nhat.cd] = ma_tran_co[tot_nhat.hg][tot_nhat.cg];
-            ma_tran_co[tot_nhat.hg][tot_nhat.cg] = "";
+            mang_co[best.hd][best.cd] = mang_co[best.hg][best.cg];
+            mang_co[best.hg][best.cg] = "";
             luot_di = "X";
-            if (quet_nuoc_di_hop_le(ma_tran_co, "X").length === 0) xu_ly_thang_thua(true);
-            ve_giao_dien();
+            if (tim_moi_nuoc_di(mang_co, "X").length === 0) xu_ly_ket_thuc(true);
+            ve_ban_co();
         }
 
-        function xu_ly_thang_thua(ai_thang) {
-            da_ket_thuc = true;
+        function xu_ly_ket_thuc(ai_thang) {
+            game_over = true;
             document.getElementById("nut_reset").style.display = "block";
-            document.getElementById("dong_chu_bao_cao").innerText = ai_thang ? "HẾT CỜ! AI THÁCH ĐẤU THÀNH CÔNG" : "HẾT CỜ! BẠN ĐÃ THẮNG AI";
+            document.getElementById("dong_chu_bao_cao").innerText = ai_thang ? "HẾT CỜ! NGỌC LÂM THẮNG" : "HẾT CỜ! BẠN ĐÃ CHIẾN THẮNG";
         }
 
         // ==========================================
-        // KHỐI 4: GIAO DIỆN ĐỒ HỌA SVG CHUẨN XÁC
+        // KHỐI 4: VẼ GIAO DIỆN CHUẨN XÁC
         // ==========================================
-        function ve_giao_dien() {
-            let vung = document.getElementById("vung_ve_hinh");
-            vung.innerHTML = "";
+        function ve_ban_co() {
+            let v = document.getElementById("vung_ve_hinh");
+            v.innerHTML = "";
 
             let svg = `<svg class="duong_ke_vec_to" width="540" height="600">
-                <defs><filter id="bong_chu" x="0" y="0" width="150%" height="150%"><feOffset result="off" in="SourceAlpha" dx="2" dy="2" /><feGaussianBlur result="blur" in="off" stdDeviation="1.5" /><feBlend in="SourceGraphic" in2="blur" mode="normal" /></filter></defs>
+                <defs><filter id="f_chu" x="0" y="0" width="150%" height="150%"><feOffset result="off" in="SourceAlpha" dx="2" dy="2" /><feGaussianBlur result="blur" in="off" stdDeviation="1.5" /><feBlend in="SourceGraphic" in2="blur" mode="normal" /></filter></defs>
                 <rect x="25" y="25" width="490" height="550" fill="none" stroke="#000" stroke-width="4"/>
                 <rect x="30" y="30" width="480" height="540" fill="none" stroke="#000" stroke-width="2"/>`;
             
@@ -261,52 +254,53 @@
             }
             svg += `<path d="M 210 30 L 330 150 M 330 30 L 210 150 M 210 450 L 330 570 M 330 450 L 210 570" stroke="#000" stroke-width="1.5" />`;
             
-            [[2,1],[2,7],[7,1],[7,7],[3,0],[3,2],[3,4],[3,6],[3,8],[6,0],[6,2],[6,4],[6,6],[6,8]].forEach(v => {
-                let x = 30+v[1]*60, y = 30+v[0]*60, d=6, l=12;
-                if(v[1]>0) svg += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
-                if(v[1]<8) svg += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+            [[2,1],[2,7],[7,1],[7,7],[3,0],[3,2],[3,4],[3,6],[3,8],[6,0],[6,2],[6,4],[6,6],[6,8]].forEach(p => {
+                let x = 30+p[1]*60, y = 30+p[0]*60, d=6, l=12;
+                if(p[1]>0) svg += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+                if(p[1]<8) svg += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
             });
 
-            svg += `<text x="270" y="308" font-size="32" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="12" fill="#2c3e50" filter="url(#bong_chu)">NGỌC LÂM THÁCH ĐẤU</text></svg>`;
-            vung.insertAdjacentHTML('beforeend', svg);
+            // CĂN GIỮA TUYỆT ĐỐI CHỮ TRONG LÒNG SÔNG
+            svg += `<text x="270" y="306" font-size="34" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" dominant-baseline="central" letter-spacing="12" fill="#2c3e50" filter="url(#f_chu)">NGỌC LÂM THÁCH ĐẤU</text></svg>`;
+            v.insertAdjacentHTML('beforeend', svg);
 
             for(let h=0; h<10; h++) for(let c=0; c<9; c++) {
                 let o = document.createElement("div"); o.className = "o_vuong_nho";
-                o.onclick = () => xu_ly_bam(h, c);
-                let q = ma_tran_co[h][c];
+                o.onclick = () => xu_ly_click(h, c);
+                let q = mang_co[h][c];
                 if(q !== "") {
                     let hinh = document.createElement("div");
-                    hinh.className = "cuc_tron_co " + (q.startsWith("X") ? "loai_quan_den" : "loai_quan_do");
-                    hinh.innerText = tu_hien_thi[q];
-                    if(h === hang_dang_chon && c === cot_dang_chon) hinh.classList.add("dang_duoc_chon");
+                    hinh.className = "cuc_tron_co " + (q.startsWith("X") ? "phe_den" : "phe_do");
+                    hinh.innerText = tu_dien_chu_han[q];
+                    if(h === h_chon && c === c_chon) hinh.classList.add("dang_duoc_chon");
                     o.appendChild(hinh);
                 }
-                vung.appendChild(o);
+                v.appendChild(o);
             }
-            if(!da_ket_thuc) document.getElementById("dong_chu_bao_cao").innerText = luot_di==="X" ? "Lượt của: Người chơi (Đen)" : "Lượt của: AI (Đang suy nghĩ...)";
+            if(!game_over) document.getElementById("dong_chu_bao_cao").innerText = luot_di==="X" ? "Lượt của: Người chơi (Đen)" : "Lượt của: AI (Đang suy nghĩ...)";
         }
 
-        function xu_ly_bam(h, c) {
-            if(luot_di !== "X" || da_ket_thuc) return;
-            let q = ma_tran_co[h][c];
-            if(hang_dang_chon === -1) {
-                if(q.startsWith("X")) { hang_dang_chon = h; cot_dang_chon = c; ve_giao_dien(); }
+        function xu_ly_click(h, c) {
+            if(luot_di !== "X" || game_over) return;
+            let q = mang_co[h][c];
+            if(h_chon === -1) {
+                if(q.startsWith("X")) { h_chon = h; c_chon = c; ve_ban_co(); }
             } else {
-                if(h === hang_dang_chon && c === cot_dang_chon) { hang_dang_chon = -1; cot_dang_chon = -1; ve_giao_dien(); return; }
-                if(q.startsWith("X")) { hang_dang_chon = h; cot_dang_chon = c; ve_giao_dien(); return; }
+                if(h === h_chon && c === c_chon) { h_chon = -1; c_chon = -1; ve_ban_co(); return; }
+                if(q.startsWith("X")) { h_chon = h; c_chon = c; ve_ban_co(); return; }
                 
-                if(nuoc_di_an_toan(ma_tran_co, hang_dang_chon, cot_dang_chon, h, c, "X")) {
-                    ma_tran_co[h][c] = ma_tran_co[hang_dang_chon][cot_dang_chon];
-                    ma_tran_co[hang_dang_chon][cot_dang_chon] = "";
-                    hang_dang_chon = -1; cot_dang_chon = -1; luot_di = "D";
-                    if(quet_nuoc_di_hop_le(ma_tran_co, "D").length === 0) xu_ly_thang_thua(false);
-                    ve_giao_dien();
-                    if(!da_ket_thuc) setTimeout(ai_suy_nghi, 500);
+                if(nuoc_di_hop_le(mang_co, h_chon, c_chon, h, c, "X")) {
+                    mang_co[h][c] = mang_co[h_chon][c_chon];
+                    mang_co[h_chon][c_chon] = "";
+                    h_chon = -1; c_chon = -1; luot_di = "D";
+                    if(tim_moi_nuoc_di(mang_co, "D").length === 0) xu_ly_ket_thuc(false);
+                    ve_ban_co();
+                    if(!game_over) setTimeout(ai_lam_viec, 500);
                 }
             }
         }
 
-        khoi_tao_he_thong();
+        khoi_tao_lai();
     </script>
 </body>
 </html>
