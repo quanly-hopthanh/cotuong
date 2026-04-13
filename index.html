@@ -3,35 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giao Lưu Cờ Tướng</title>
+    <title>Giao Lưu Cờ Tướng Chuyên Nghiệp</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f9f9f9;
+            background-color: #f0f0f0;
             margin-top: 20px;
         }
         .khung_bao_ngoai {
-            background-color: #e3c18c;
-            padding: 15px;
-            border: 3px solid #8b4513;
-            border-radius: 5px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            background-color: #d2b48c; /* Màu gỗ sáng hơn */
+            padding: 20px;
+            border: 4px solid #8b4513;
+            border-radius: 10px;
+            box-shadow: 5px 5px 20px rgba(0,0,0,0.5);
+            background-image: repeating-linear-gradient(45deg, #d2b48c, #d2b48c 5px, #c8a168 5px, #c8a168 10px); /* Hiệu ứng vân gỗ nhẹ */
         }
         .mat_phang_lon {
             display: grid;
-            grid-template-columns: repeat(9, 50px);
-            grid-template-rows: repeat(10, 50px);
+            grid-template-columns: repeat(9, 60px);
+            grid-template-rows: repeat(10, 60px);
             gap: 1px;
             background-color: #a0522d;
-            border: 2px solid #5c3a21;
+            border: 3px solid #5c3a21;
+            position: relative; /* Để vẽ Hán cung */
         }
         .o_vuong_nho {
-            width: 50px;
-            height: 50px;
-            background-color: #e3c18c;
+            width: 60px;
+            height: 60px;
+            background-color: #d2b48c;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -55,41 +57,90 @@
             background-color: #8b4513;
             z-index: 1;
         }
-        /* Khu vực sông */
+        /* Vẽ Hán cung và các đường chéo */
+        .han_cung {
+            position: absolute;
+            width: 181px;
+            height: 181px;
+            border: 2px solid #8b4513;
+            z-index: 0;
+        }
+        .han_cung_do { top: 0; left: 180px; }
+        .han_cung_xanh { bottom: 0; left: 180px; }
+        
+        .han_cung::before, .han_cung::after {
+            content: "";
+            position: absolute;
+            background-color: #8b4513;
+        }
+        .han_cung::before { width: 100%; height: 2px; top: 90px; }
+        .han_cung::after { width: 2px; height: 100%; left: 90px; }
+        
+        /* Đường chéo Hán cung */
+        .duong_cheo {
+            position: absolute;
+            width: 254px; /* sqrt(180^2 + 180^2) */
+            height: 2px;
+            background-color: #8b4513;
+            z-index: 0;
+            transform-origin: top left;
+        }
+        .duong_cheo_1 { transform: rotate(45deg); top: 0; left: 180px; }
+        .duong_cheo_2 { transform: rotate(-45deg); top: 180px; left: 180px; }
+        .duong_cheo_3 { transform: rotate(45deg); bottom: 180px; left: 180px; }
+        .duong_cheo_4 { transform: rotate(-45deg); bottom: 0; left: 180px; }
+
+        /* Khu vực sông chữ Hán */
         .song_ngan_cach {
             grid-column: 1 / span 9;
-            height: 50px;
-            background-color: #e3c18c;
+            height: 60px;
+            background-color: #d2b48c;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 20px;
+            font-size: 28px;
             color: #8b4513;
-            letter-spacing: 30px;
+            font-family: "SimSun", "PMingLiU", "HanWangYen", serif; /* Phông chữ Hán */
+            letter-spacing: 50px;
             z-index: 2;
             border-top: 1px solid #8b4513;
             border-bottom: 1px solid #8b4513;
         }
+        /* Quân cờ chữ Hán */
         .cuc_tron_co {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 18px;
-            border: 2px solid #333;
-            background-color: #fff;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            font-size: 24px;
+            font-family: "SimSun", "HanWangYen", serif; /* Phông chữ Hán */
+            background-color: #faf0e6; /* Màu nền kem nhạt */
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.6);
             z-index: 3;
             user-select: none;
+            position: relative;
         }
-        .chu_mau_xanh { color: #0000cd; border-color: #0000cd; }
-        .chu_mau_do { color: #dc143c; border-color: #dc143c; }
-        .dang_duoc_chon { background-color: #ffff66; border-color: #ff8c00; box-shadow: 0 0 8px #ff8c00; }
-        .khu_vuc_thong_bao { margin-bottom: 15px; font-size: 18px; font-weight: bold; color: #333; }
+        
+        /* Hiệu ứng 3D nhẹ cho quân cờ */
+        .cuc_tron_co::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(0,0,0,0.1));
+            pointer-events: none;
+        }
+
+        .chu_mau_xanh { color: #000000; border: 3px solid #0000cd; } /* Chữ đen, viền xanh */
+        .chu_mau_do { color: #dc143c; border: 3px solid #dc143c; } /* Chữ đỏ, viền đỏ */
+        
+        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 10px #ff8c00; }
+        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #333; }
     </style>
 </head>
 <body>
@@ -106,6 +157,17 @@
         // KHỐI 1: CÁC BIẾN CƠ SỞ VÀ TRẠNG THÁI
         // ==========================================
         // X = Xanh (Người), D = Đỏ (Máy tính)
+        // Ánh xạ quân cờ sang chữ Hán
+        let tu_dien_chu = {
+            // Đỏ (Quân trên)
+            "D_Xe": "俥", "D_Ma": "傌", "D_Tuong": "相", "D_Si": "仕", 
+            "D_Tuong_C": "帥", "D_Phao": "炮", "D_Tot": "兵",
+            // Xanh (Quân dưới)
+            "X_Xe": "車", "X_Ma": "馬", "X_Tuong": "象", "X_Si": "士", 
+            "X_Tuong_C": "將", "X_Phao": "砲", "X_Tot": "卒"
+        };
+
+        // Bố cục quân cờ ban đầu
         let mang_luoi_chinh = [
             ["D_Xe", "D_Ma", "D_Tuong", "D_Si", "D_Tuong_C", "D_Si", "D_Tuong", "D_Ma", "D_Xe"],
             ["", "", "", "", "", "", "", "", ""],
@@ -119,11 +181,6 @@
             ["X_Xe", "X_Ma", "X_Tuong", "X_Si", "X_Tuong_C", "X_Si", "X_Tuong", "X_Ma", "X_Xe"]
         ];
 
-        let tu_dien_chu = {
-            "Xe": "Xe", "Ma": "Mã", "Tuong": "Tượng", "Si": "Sĩ", 
-            "Tuong_C": "Tướng", "Phao": "Pháo", "Tot": "Tốt"
-        };
-
         let nguoi_dang_cam_co = "X"; // Bắt đầu là Xanh (Người chơi)
         let vi_tri_hang_chon = -1;
         let vi_tri_cot_chon = -1;
@@ -135,12 +192,26 @@
             let vung_chua = document.getElementById("vung_ve_hinh");
             vung_chua.innerHTML = ""; // Xóa trắng để vẽ lại
 
+            // Thêm các yếu tố Hán cung và đường chéo
+            let han_cung_do = document.createElement("div");
+            han_cung_do.className = "han_cung han_cung_do";
+            vung_chua.appendChild(han_cung_do);
+
+            let han_cung_xanh = document.createElement("div");
+            han_cung_xanh.className = "han_cung han_cung_xanh";
+            vung_chua.appendChild(han_cung_xanh);
+
+            let duong_cheo_1 = document.createElement("div"); duong_cheo_1.className = "duong_cheo duong_cheo_1"; vung_chua.appendChild(duong_cheo_1);
+            let duong_cheo_2 = document.createElement("div"); duong_cheo_2.className = "duong_cheo duong_cheo_2"; vung_chua.appendChild(duong_cheo_2);
+            let duong_cheo_3 = document.createElement("div"); duong_cheo_3.className = "duong_cheo duong_cheo_3"; vung_chua.appendChild(duong_cheo_3);
+            let duong_cheo_4 = document.createElement("div"); duong_cheo_4.className = "duong_cheo duong_cheo_4"; vung_chua.appendChild(duong_cheo_4);
+
             for (let hang = 0; hang < 10; hang++) {
-                // Thêm dòng sông ở giữa
+                // Thêm dòng sông ở giữa với chữ Hán
                 if (hang === 5) {
                     let dong_song = document.createElement("div");
                     dong_song.className = "song_ngan_cach";
-                    dong_song.innerText = "SỞ HÀ HÁN GIỚI";
+                    dong_song.innerText = "楚河漢界";
                     vung_chua.appendChild(dong_song);
                 }
 
@@ -153,10 +224,9 @@
                     if (gia_tri_o !== "") {
                         let cuc_hinh = document.createElement("div");
                         let phe_mau = gia_tri_o.split("_")[0]; // X hoặc D
-                        let loai_hinh = gia_tri_o.substring(2); // Phần còn lại (Xe, Ma...)
 
                         cuc_hinh.className = "cuc_tron_co " + (phe_mau === "X" ? "chu_mau_xanh" : "chu_mau_do");
-                        cuc_hinh.innerText = tu_dien_chu[loai_hinh];
+                        cuc_hinh.innerText = tu_dien_chu[gia_tri_o]; // Lấy chữ Hán trực tiếp từ mã quân cờ
 
                         // Đánh dấu nếu đang được chọn
                         if (hang === vi_tri_hang_chon && cot === vi_tri_cot_chon) {
@@ -206,8 +276,7 @@
                     return;
                 }
 
-                // Thực hiện di chuyển (KHỐI KIỂM TRA LUẬT CỜ SẼ ĐƯỢC NÂNG CẤP Ở ĐÂY)
-                // Hiện tại: Cho phép ăn quân đối phương hoặc đi vào ô trống
+                // Thực hiện di chuyển (Luật cờ vẫn đang mở tự do)
                 mang_luoi_chinh[hang_bam][cot_bam] = mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon];
                 mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon] = "";
                 
@@ -238,8 +307,7 @@
 
             if (danh_sach_quan_do.length === 0) return; // Hết quân
 
-            // Bước 2: Chọn ngẫu nhiên 1 quân Đỏ và 1 hướng đi (Mô phỏng AI)
-            // LƯU Ý NÂNG CẤP: Thuật toán đánh giá lợi thế (Minimax) sẽ thay thế vòng lặp này.
+            // Bước 2: Chọn ngẫu nhiên 1 quân Đỏ và 1 hướng đi
             let da_di_chuyen = false;
             let so_lan_thu = 0; // Tránh lặp vô hạn
 
