@@ -16,17 +16,17 @@
         .khung_bao_ngoai {
             background-color: #faf0e6; 
             padding: 25px;
-            border: 2px solid #000;
-            outline: 6px solid #000;
-            outline-offset: -10px;
             box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            border-radius: 5px;
         }
         .mat_phang_lon {
             display: grid;
             grid-template-columns: repeat(9, 60px);
             grid-template-rows: repeat(10, 60px);
-            background-color: transparent;
-            position: relative; /* Loại bỏ viền cũ để dùng viền véc-tơ chuẩn xác hơn */
+            background-color: #faf0e6;
+            position: relative; 
+            width: 540px;
+            height: 600px;
         }
         
         /* Lớp vẽ véc-tơ siêu chuẩn xác cho toàn bộ bàn cờ */
@@ -46,7 +46,7 @@
             align-items: center;
             cursor: pointer;
             position: relative;
-            z-index: 1; /* Nằm trên lớp vẽ SVG */
+            z-index: 1; 
         }
         
         .cuc_tron_co {
@@ -62,19 +62,20 @@
             background-color: #fff;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
             user-select: none;
+            transition: all 0.2s ease;
         }
         
-        /* Chỉnh lại màu chuẩn: Đen cho quân dưới, Đỏ cho quân trên */
-        .chu_mau_xanh { color: #000; border: 2px solid #000; } 
+        /* Chỉnh màu Xanh Dương và Đỏ tương phản rõ rệt */
+        .chu_mau_xanh { color: #0000cd; border: 2px solid #0000cd; } 
         .chu_mau_do { color: #dc143c; border: 2px solid #dc143c; } 
         
-        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 12px #ff8c00; }
+        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 12px #ff8c00; transform: scale(1.1); }
         .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #333; text-transform: uppercase;}
     </style>
 </head>
 <body>
 
-    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Đen)</div>
+    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Xanh)</div>
     
     <div class="khung_bao_ngoai">
         <div class="mat_phang_lon" id="vung_ve_hinh">
@@ -110,10 +111,8 @@
         let vi_tri_cot_chon = -1;
 
         // ==========================================
-        // KHỐI 2: TÍNH TOÁN LOGIC (LUẬT CỜ TƯỚNG CHUẨN)
+        // KHỐI 2: TÍNH TOÁN LOGIC VÀ KIỂM TRA LUẬT CỜ
         // ==========================================
-        
-        // Đếm số vật cản trên một đường thẳng ngang hoặc dọc
         function xet_duong_thang_trong(ban_co_kiem_tra, h1, c1, h2, c2) {
             let dem_vat_can = 0;
             if (h1 === h2) {
@@ -128,7 +127,6 @@
             return dem_vat_can;
         }
 
-        // Kiểm tra xem nước đi có làm hai tướng đối mặt không
         function kiem_tra_lo_mat_tuong(ban_co_thu_nghiem) {
             let c_tuong_do = -1, h_tuong_do = -1;
             let c_tuong_xanh = -1, h_tuong_xanh = -1;
@@ -143,12 +141,11 @@
                 for (let h = h_tuong_do + 1; h < h_tuong_xanh; h++) {
                     if (ban_co_thu_nghiem[h][c_tuong_do] !== "") dem_vat_can++;
                 }
-                if (dem_vat_can === 0) return true; // Bị lộ mặt (phạm luật)
+                if (dem_vat_can === 0) return true;
             }
             return false;
         }
 
-        // Kiểm tra tổng hợp mọi luật lệ
         function xet_tinh_hop_le_cua_buoc_chan(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich, phe_cam_quan) {
             let quan_chon = ban_co_hien_tai[hang_goc][cot_goc];
             let quan_dich = ban_co_hien_tai[hang_dich][cot_dich];
@@ -161,7 +158,6 @@
             let lech_cot = cot_dich - cot_goc;
             let khoang_cach_hang = Math.abs(lech_hang);
             let khoang_cach_cot = Math.abs(lech_cot);
-
             let di_dung_luat = false;
 
             if (loai_hinh_quan === "Xe") {
@@ -230,30 +226,26 @@
         }
 
         // ==========================================
-        // KHỐI 3: XỬ LÝ GIAO DIỆN BÀN CỜ (NÂNG CẤP VÉC-TƠ TOÀN DIỆN)
+        // KHỐI 3: VẼ GIAO DIỆN HÌNH HỌC CHUẨN XÁC
         // ==========================================
         function ve_lai_toan_bo() {
             let vung_chua = document.getElementById("vung_ve_hinh");
             vung_chua.innerHTML = ""; 
 
-            // Bản vá đồ họa: Vẽ toàn bộ vạch kẻ bằng SVG để khớp chính xác tâm quân cờ
-            let m_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            m_svg.setAttribute("class", "duong_ke_vec_to");
-            m_svg.setAttribute("width", "540");
-            m_svg.setAttribute("height", "600");
-            
-            let html_vec_to = "";
+            // Bản vẽ Véc-tơ nền
+            let html_vec_to = `<svg class="duong_ke_vec_to" width="540" height="600">`;
 
-            // 1. Vẽ khung ngoài cùng ôm sát vạch lưới
-            html_vec_to += `<rect x="28" y="28" width="484" height="544" fill="none" stroke="#000" stroke-width="4"/>`;
+            // Viền kép ngoài cùng
+            html_vec_to += `<rect x="25" y="25" width="490" height="550" fill="none" stroke="#000" stroke-width="4"/>`;
+            html_vec_to += `<rect x="30" y="30" width="480" height="540" fill="none" stroke="#000" stroke-width="2"/>`;
 
-            // 2. Vẽ 10 đường kẻ ngang
+            // 10 đường ngang
             for(let i = 0; i < 10; i++) {
                 let y = 30 + i * 60;
                 html_vec_to += `<line x1="30" y1="${y}" x2="510" y2="${y}" stroke="#000" stroke-width="2"/>`;
             }
 
-            // 3. Vẽ 9 đường kẻ dọc (Chừa khoảng trống ở sông)
+            // 9 đường dọc (trừ phần Sông)
             for(let i = 0; i < 9; i++) {
                 let x = 30 + i * 60;
                 if(i === 0 || i === 8) {
@@ -264,43 +256,44 @@
                 }
             }
 
-            // 4. Vẽ đường chéo Hán Cung
+            // Đường chéo Hán Cung
             html_vec_to += `<line x1="210" y1="30" x2="330" y2="150" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="330" y1="30" x2="210" y2="150" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="210" y1="450" x2="330" y2="570" stroke="#000" stroke-width="2"/>`;
             html_vec_to += `<line x1="330" y1="450" x2="210" y2="570" stroke="#000" stroke-width="2"/>`;
 
-            // 5. Vẽ Hoa Thị tinh xảo (Tránh tràn ra ngoài bàn cờ)
+            // Hoa thị cho Pháo và Tốt
             let vi_tri_hoa_thi = [
                 [2,1], [2,7], [7,1], [7,7], // Pháo
                 [3,0], [3,2], [3,4], [3,6], [3,8], // Tốt Đỏ
-                [6,0], [6,2], [6,4], [6,6], [6,8]  // Tốt Đen
+                [6,0], [6,2], [6,4], [6,6], [6,8]  // Tốt Xanh
             ];
 
             vi_tri_hoa_thi.forEach(vt => {
                 let h = vt[0], c = vt[1];
                 let x = 30 + c * 60;
                 let y = 30 + h * 60;
-                let d = 5; // Độ giãn tâm
-                let l = 10; // Chiều dài nét gập
+                let d = 5; // Khoảng cách từ tâm
+                let l = 10; // Độ dài nét vuông
 
-                // Bo góc trên-trái
-                if (c > 0) html_vec_to += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
-                // Bo góc trên-phải
-                if (c < 8) html_vec_to += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
-                // Bo góc dưới-trái
-                if (c > 0) html_vec_to += `<polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
-                // Bo góc dưới-phải
-                if (c < 8) html_vec_to += `<polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                if (c > 0) {
+                    html_vec_to += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                    html_vec_to += `<polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                }
+                if (c < 8) {
+                    html_vec_to += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                    html_vec_to += `<polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                }
             });
 
-            // 6. Chèn chữ Sông chuẩn chỉnh, không rớt dòng
+            // Chữ dòng Sông
             html_vec_to += `<text x="270" y="308" font-size="28" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="8">NGỌC LÂM THÁCH ĐẤU</text>`;
+            html_vec_to += `</svg>`;
+            
+            // Chèn SVG vào DOM
+            vung_chua.insertAdjacentHTML('beforeend', html_vec_to);
 
-            m_svg.innerHTML = html_vec_to;
-            vung_chua.appendChild(m_svg);
-
-            // Bố trí quân cờ đè lên lưới
+            // Bố trí quân cờ
             for (let hang = 0; hang < 10; hang++) {
                 for (let cot = 0; cot < 9; cot++) {
                     let o_dat = document.createElement("div");
@@ -324,14 +317,15 @@
                 }
             }
 
+            // Cập nhật trạng thái
             let chu_bao = document.getElementById("dong_chu_bao_cao");
-            if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Đen)";
+            if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Xanh)";
             else if (nguoi_dang_cam_co === "D") chu_bao.innerText = "Lượt của: Máy tính (Đỏ đang suy nghĩ...)";
             else chu_bao.innerText = "HẾT CỜ!";
         }
 
         // ==========================================
-        // KHỐI 4: LOGIC CHỌN VÀ DI CHUYỂN NGƯỜI CHƠI
+        // KHỐI 4: TƯƠNG TÁC NGƯỜI DÙNG
         // ==========================================
         function xu_ly_cham_tay(hang_bam, cot_bam) {
             if (nguoi_dang_cam_co !== "X") return; 
@@ -368,15 +362,13 @@
                     nguoi_dang_cam_co = "D";
                     ve_lai_toan_bo();
 
-                    setTimeout(may_tu_dong_chay, 500);
-                } else {
-                    console.log("Nước đi sai luật cờ tướng!"); 
+                    setTimeout(may_tu_dong_chay, 600);
                 }
             }
         }
 
         // ==========================================
-        // KHỐI 5: TRÍ TUỆ NHÂN TẠO TÍNH TOÁN BƯỚC ĐI
+        // KHỐI 5: HỆ THỐNG MÁY TÍNH PHẢN HỒI (AI)
         // ==========================================
         function may_tu_dong_chay() {
             let danh_sach_buoc_di_hop_le = [];
@@ -412,6 +404,7 @@
             ve_lai_toan_bo();
         }
 
+        // Khởi động
         ve_lai_toan_bo();
 
     </script>
