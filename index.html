@@ -26,10 +26,10 @@
             grid-template-columns: repeat(9, 60px);
             grid-template-rows: repeat(10, 60px);
             background-color: transparent;
-            border: 2px solid #000;
-            position: relative; 
+            position: relative; /* Loại bỏ viền cũ để dùng viền véc-tơ chuẩn xác hơn */
         }
-        /* Lớp vẽ véc-tơ siêu chuẩn xác cho Hán Cung */
+        
+        /* Lớp vẽ véc-tơ siêu chuẩn xác cho toàn bộ bàn cờ */
         .duong_ke_vec_to {
             position: absolute;
             top: 0;
@@ -37,6 +37,7 @@
             pointer-events: none;
             z-index: 0;
         }
+
         .o_vuong_nho {
             width: 60px;
             height: 60px;
@@ -45,66 +46,9 @@
             align-items: center;
             cursor: pointer;
             position: relative;
-        }
-        .o_vuong_nho::before {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background-color: #000;
-            z-index: 1;
-        }
-        .o_vuong_nho::after {
-            content: "";
-            position: absolute;
-            height: 100%;
-            width: 2px;
-            background-color: #000;
-            z-index: 1;
+            z-index: 1; /* Nằm trên lớp vẽ SVG */
         }
         
-        .hoa_thi {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-color: #000;
-            border-style: solid;
-            border-width: 0;
-            z-index: 1;
-        }
-        .ht_tl { bottom: 34px; right: 34px; border-bottom-width: 2px; border-right-width: 2px; }
-        .ht_tr { bottom: 34px; left: 34px; border-bottom-width: 2px; border-left-width: 2px; }
-        .ht_bl { top: 34px; right: 34px; border-top-width: 2px; border-right-width: 2px; }
-        .ht_br { top: 34px; left: 34px; border-top-width: 2px; border-left-width: 2px; }
-
-        .song_ngan_cach {
-            grid-column: 1 / span 9;
-            height: 60px;
-            background-color: #faf0e6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 26px;
-            color: #000;
-            font-family: "Times New Roman", Times, serif;
-            letter-spacing: 15px;
-            text-indent: 15px; /* Sửa lỗi lệch chữ do letter-spacing */
-            text-transform: uppercase;
-            z-index: 2;
-            border-top: 2px solid #000;
-            border-bottom: 2px solid #000;
-            position: relative;
-        }
-        .song_ngan_cach::before {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 56px;
-            background-color: #faf0e6;
-            z-index: -1;
-        }
-
         .cuc_tron_co {
             width: 50px;
             height: 50px;
@@ -113,25 +57,24 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 24px;
+            font-size: 26px;
             font-family: "SimSun", "HanWangYen", serif;
             background-color: #fff;
-            box-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-            z-index: 3;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
             user-select: none;
-            position: relative;
         }
         
+        /* Chỉnh lại màu chuẩn: Đen cho quân dưới, Đỏ cho quân trên */
         .chu_mau_xanh { color: #000; border: 2px solid #000; } 
         .chu_mau_do { color: #dc143c; border: 2px solid #dc143c; } 
         
-        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 10px #ff8c00; }
-        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #333; }
+        .dang_duoc_chon { background-color: #ffff99; border-color: #ff8c00; box-shadow: 0 0 12px #ff8c00; }
+        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 22px; font-weight: bold; color: #333; text-transform: uppercase;}
     </style>
 </head>
 <body>
 
-    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Xanh)</div>
+    <div class="khu_vuc_thong_bao" id="dong_chu_bao_cao">Lượt của: Người chơi (Đen)</div>
     
     <div class="khung_bao_ngoai">
         <div class="mat_phang_lon" id="vung_ve_hinh">
@@ -210,7 +153,6 @@
             let quan_chon = ban_co_hien_tai[hang_goc][cot_goc];
             let quan_dich = ban_co_hien_tai[hang_dich][cot_dich];
 
-            // Đứng im tại chỗ hoặc tự ăn quân mình
             if (hang_goc === hang_dich && cot_goc === cot_dich) return false;
             if (quan_dich !== "" && quan_dich.startsWith(phe_cam_quan)) return false;
 
@@ -222,36 +164,31 @@
 
             let di_dung_luat = false;
 
-            // Luật Xe
             if (loai_hinh_quan === "Xe") {
                 if (khoang_cach_hang === 0 || khoang_cach_cot === 0) {
                     if (xet_duong_thang_trong(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich) === 0) di_dung_luat = true;
                 }
             }
-            // Luật Pháo
             else if (loai_hinh_quan === "Phao") {
                 if (khoang_cach_hang === 0 || khoang_cach_cot === 0) {
                     let so_vat_can = xet_duong_thang_trong(ban_co_hien_tai, hang_goc, cot_goc, hang_dich, cot_dich);
-                    if (quan_dich === "") { if (so_vat_can === 0) di_dung_luat = true; } // Đi thường
-                    else { if (so_vat_can === 1) di_dung_luat = true; } // Ăn quân
+                    if (quan_dich === "") { if (so_vat_can === 0) di_dung_luat = true; } 
+                    else { if (so_vat_can === 1) di_dung_luat = true; } 
                 }
             }
-            // Luật Mã
             else if (loai_hinh_quan === "Ma") {
                 if (khoang_cach_hang === 2 && khoang_cach_cot === 1) {
-                    if (ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc] === "") di_dung_luat = true; // Không cản chân
+                    if (ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc] === "") di_dung_luat = true; 
                 } else if (khoang_cach_hang === 1 && khoang_cach_cot === 2) {
                     if (ban_co_hien_tai[hang_goc][cot_goc + lech_cot/2] === "") di_dung_luat = true;
                 }
             }
-            // Luật Tượng
             else if (loai_hinh_quan === "Tuong") {
                 if (khoang_cach_hang === 2 && khoang_cach_cot === 2) {
                     let qua_song = (phe_cam_quan === "X" && hang_dich <= 4) || (phe_cam_quan === "D" && hang_dich >= 5);
-                    if (!qua_song && ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc + lech_cot/2] === "") di_dung_luat = true; // Không cản mắt
+                    if (!qua_song && ban_co_hien_tai[hang_goc + lech_hang/2][cot_goc + lech_cot/2] === "") di_dung_luat = true; 
                 }
             }
-            // Luật Sĩ
             else if (loai_hinh_quan === "Si") {
                 if (khoang_cach_hang === 1 && khoang_cach_cot === 1) {
                     if (cot_dich >= 3 && cot_dich <= 5) {
@@ -259,7 +196,6 @@
                     }
                 }
             }
-            // Luật Tướng
             else if (loai_hinh_quan === "Tuong_C") {
                 if ((khoang_cach_hang === 1 && khoang_cach_cot === 0) || (khoang_cach_hang === 0 && khoang_cach_cot === 1)) {
                     if (cot_dich >= 3 && cot_dich <= 5) {
@@ -267,18 +203,17 @@
                     }
                 }
             }
-            // Luật Tốt
             else if (loai_hinh_quan === "Tot") {
                 if (phe_cam_quan === "X") {
-                    if (hang_goc > 4) { // Chưa qua sông
+                    if (hang_goc > 4) { 
                         if (lech_hang === -1 && khoang_cach_cot === 0) di_dung_luat = true;
-                    } else { // Đã qua sông
+                    } else { 
                         if ((lech_hang === -1 && khoang_cach_cot === 0) || (lech_hang === 0 && khoang_cach_cot === 1)) di_dung_luat = true;
                     }
                 } else {
-                    if (hang_goc < 5) { // Chưa qua sông
+                    if (hang_goc < 5) { 
                         if (lech_hang === 1 && khoang_cach_cot === 0) di_dung_luat = true;
-                    } else { // Đã qua sông
+                    } else { 
                         if ((lech_hang === 1 && khoang_cach_cot === 0) || (lech_hang === 0 && khoang_cach_cot === 1)) di_dung_luat = true;
                     }
                 }
@@ -286,7 +221,6 @@
 
             if (!di_dung_luat) return false;
 
-            // Thử đi để xem có phạm luật lộ mặt tướng không
             let ban_co_tam_thoi = JSON.parse(JSON.stringify(ban_co_hien_tai));
             ban_co_tam_thoi[hang_dich][cot_dich] = ban_co_tam_thoi[hang_goc][cot_goc];
             ban_co_tam_thoi[hang_goc][cot_goc] = "";
@@ -296,63 +230,82 @@
         }
 
         // ==========================================
-        // KHỐI 3: XỬ LÝ GIAO DIỆN BÀN CỜ 
+        // KHỐI 3: XỬ LÝ GIAO DIỆN BÀN CỜ (NÂNG CẤP VÉC-TƠ TOÀN DIỆN)
         // ==========================================
         function ve_lai_toan_bo() {
             let vung_chua = document.getElementById("vung_ve_hinh");
             vung_chua.innerHTML = ""; 
 
-            // Bản vá 1: Vẽ nét chéo Hán Cung bằng công nghệ véc-tơ (chính xác 100%)
+            // Bản vá đồ họa: Vẽ toàn bộ vạch kẻ bằng SVG để khớp chính xác tâm quân cờ
             let m_svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             m_svg.setAttribute("class", "duong_ke_vec_to");
             m_svg.setAttribute("width", "540");
             m_svg.setAttribute("height", "600");
             
-            let toa_do_cheo = [
-                {x1: 210, y1: 30, x2: 330, y2: 150}, // Đỏ trái xuống phải
-                {x1: 330, y1: 30, x2: 210, y2: 150}, // Đỏ phải xuống trái
-                {x1: 210, y1: 450, x2: 330, y2: 570}, // Xanh trái xuống phải
-                {x1: 330, y1: 450, x2: 210, y2: 570}  // Xanh phải xuống trái
+            let html_vec_to = "";
+
+            // 1. Vẽ khung ngoài cùng ôm sát vạch lưới
+            html_vec_to += `<rect x="28" y="28" width="484" height="544" fill="none" stroke="#000" stroke-width="4"/>`;
+
+            // 2. Vẽ 10 đường kẻ ngang
+            for(let i = 0; i < 10; i++) {
+                let y = 30 + i * 60;
+                html_vec_to += `<line x1="30" y1="${y}" x2="510" y2="${y}" stroke="#000" stroke-width="2"/>`;
+            }
+
+            // 3. Vẽ 9 đường kẻ dọc (Chừa khoảng trống ở sông)
+            for(let i = 0; i < 9; i++) {
+                let x = 30 + i * 60;
+                if(i === 0 || i === 8) {
+                    html_vec_to += `<line x1="${x}" y1="30" x2="${x}" y2="570" stroke="#000" stroke-width="2"/>`;
+                } else {
+                    html_vec_to += `<line x1="${x}" y1="30" x2="${x}" y2="270" stroke="#000" stroke-width="2"/>`;
+                    html_vec_to += `<line x1="${x}" y1="330" x2="${x}" y2="570" stroke="#000" stroke-width="2"/>`;
+                }
+            }
+
+            // 4. Vẽ đường chéo Hán Cung
+            html_vec_to += `<line x1="210" y1="30" x2="330" y2="150" stroke="#000" stroke-width="2"/>`;
+            html_vec_to += `<line x1="330" y1="30" x2="210" y2="150" stroke="#000" stroke-width="2"/>`;
+            html_vec_to += `<line x1="210" y1="450" x2="330" y2="570" stroke="#000" stroke-width="2"/>`;
+            html_vec_to += `<line x1="330" y1="450" x2="210" y2="570" stroke="#000" stroke-width="2"/>`;
+
+            // 5. Vẽ Hoa Thị tinh xảo (Tránh tràn ra ngoài bàn cờ)
+            let vi_tri_hoa_thi = [
+                [2,1], [2,7], [7,1], [7,7], // Pháo
+                [3,0], [3,2], [3,4], [3,6], [3,8], // Tốt Đỏ
+                [6,0], [6,2], [6,4], [6,6], [6,8]  // Tốt Đen
             ];
-            
-            toa_do_cheo.forEach(toa_do => {
-                let m_line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                m_line.setAttribute("x1", toa_do.x1);
-                m_line.setAttribute("y1", toa_do.y1);
-                m_line.setAttribute("x2", toa_do.x2);
-                m_line.setAttribute("y2", toa_do.y2);
-                m_line.setAttribute("stroke", "#000");
-                m_line.setAttribute("stroke-width", "2");
-                m_svg.appendChild(m_line);
+
+            vi_tri_hoa_thi.forEach(vt => {
+                let h = vt[0], c = vt[1];
+                let x = 30 + c * 60;
+                let y = 30 + h * 60;
+                let d = 5; // Độ giãn tâm
+                let l = 10; // Chiều dài nét gập
+
+                // Bo góc trên-trái
+                if (c > 0) html_vec_to += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                // Bo góc trên-phải
+                if (c < 8) html_vec_to += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                // Bo góc dưới-trái
+                if (c > 0) html_vec_to += `<polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
+                // Bo góc dưới-phải
+                if (c < 8) html_vec_to += `<polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
             });
+
+            // 6. Chèn chữ Sông chuẩn chỉnh, không rớt dòng
+            html_vec_to += `<text x="270" y="308" font-size="28" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="8">NGỌC LÂM THÁCH ĐẤU</text>`;
+
+            m_svg.innerHTML = html_vec_to;
             vung_chua.appendChild(m_svg);
 
+            // Bố trí quân cờ đè lên lưới
             for (let hang = 0; hang < 10; hang++) {
-                if (hang === 5) {
-                    let dong_song = document.createElement("div");
-                    dong_song.className = "song_ngan_cach";
-                    dong_song.innerText = "Ngọc Lâm thách đấu";
-                    vung_chua.appendChild(dong_song);
-                }
-
                 for (let cot = 0; cot < 9; cot++) {
                     let o_dat = document.createElement("div");
                     o_dat.className = "o_vuong_nho";
                     o_dat.onclick = function() { xu_ly_cham_tay(hang, cot); };
-
-                    let la_vi_tri_phao = (hang === 2 || hang === 7) && (cot === 1 || cot === 7);
-                    let la_vi_tri_tot_giua = (hang === 3 || hang === 6) && (cot === 2 || cot === 4 || cot === 6);
-                    let la_vi_tri_tot_bep_trai = (hang === 3 || hang === 6) && cot === 0;
-                    let la_vi_tri_tot_bep_phai = (hang === 3 || hang === 6) && cot === 8;
-
-                    if (la_vi_tri_phao || la_vi_tri_tot_giua || la_vi_tri_tot_bep_phai) {
-                        let tl = document.createElement("div"); tl.className = "hoa_thi ht_tl"; o_dat.appendChild(tl);
-                        let bl = document.createElement("div"); bl.className = "hoa_thi ht_bl"; o_dat.appendChild(bl);
-                    }
-                    if (la_vi_tri_phao || la_vi_tri_tot_giua || la_vi_tri_tot_bep_trai) {
-                        let tr = document.createElement("div"); tr.className = "hoa_thi ht_tr"; o_dat.appendChild(tr);
-                        let br = document.createElement("div"); br.className = "hoa_thi ht_br"; o_dat.appendChild(br);
-                    }
 
                     let gia_tri_o = mang_luoi_chinh[hang][cot];
                     if (gia_tri_o !== "") {
@@ -372,7 +325,7 @@
             }
 
             let chu_bao = document.getElementById("dong_chu_bao_cao");
-            if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Xanh)";
+            if (nguoi_dang_cam_co === "X") chu_bao.innerText = "Lượt của: Người chơi (Đen)";
             else if (nguoi_dang_cam_co === "D") chu_bao.innerText = "Lượt của: Máy tính (Đỏ đang suy nghĩ...)";
             else chu_bao.innerText = "HẾT CỜ!";
         }
@@ -406,7 +359,6 @@
                     return;
                 }
 
-                // Kiểm tra luật trước khi cho phép di chuyển
                 if (xet_tinh_hop_le_cua_buoc_chan(mang_luoi_chinh, vi_tri_hang_chon, vi_tri_cot_chon, hang_bam, cot_bam, "X")) {
                     mang_luoi_chinh[hang_bam][cot_bam] = mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon];
                     mang_luoi_chinh[vi_tri_hang_chon][vi_tri_cot_chon] = "";
@@ -418,7 +370,6 @@
 
                     setTimeout(may_tu_dong_chay, 500);
                 } else {
-                    // Cảnh báo nhẹ nhàng qua giao diện nếu đi sai luật (có thể thiết kế lại nếu cần)
                     console.log("Nước đi sai luật cờ tướng!"); 
                 }
             }
@@ -430,7 +381,6 @@
         function may_tu_dong_chay() {
             let danh_sach_buoc_di_hop_le = [];
             
-            // Quét toàn bộ bàn cờ để tìm tất cả các nước đi đúng luật của Đỏ
             for (let h_goc = 0; h_goc < 10; h_goc++) {
                 for (let c_goc = 0; c_goc < 9; c_goc++) {
                     if (mang_luoi_chinh[h_goc][c_goc].startsWith("D")) {
@@ -449,7 +399,6 @@
             }
 
             if (danh_sach_buoc_di_hop_le.length > 0) {
-                // Hiện tại AI đang chọn 1 nước đi ngẫu nhiên TRONG SỐ CÁC NƯỚC ĐÚNG LUẬT
                 let chon_ngau_nhien = danh_sach_buoc_di_hop_le[Math.floor(Math.random() * danh_sach_buoc_di_hop_le.length)];
                 
                 mang_luoi_chinh[chon_ngau_nhien.den_h][chon_ngau_nhien.den_c] = mang_luoi_chinh[chon_ngau_nhien.tu_h][chon_ngau_nhien.tu_c];
@@ -457,7 +406,7 @@
                 
                 nguoi_dang_cam_co = "X";
             } else {
-                nguoi_dang_cam_co = "HET_CO"; // Máy tính bí cờ, người chơi thắng
+                nguoi_dang_cam_co = "HET_CO"; 
             }
             
             ve_lai_toan_bo();
