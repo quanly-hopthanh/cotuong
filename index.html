@@ -10,15 +10,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f4f4f4;
+            background-color: #f8f9fa;
             margin-top: 20px;
         }
         .khung_bao_ngoai {
             background-color: #faf0e6; 
             padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            border-radius: 8px;
-            border: 1px solid #8b4513;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            border-radius: 10px;
+            border: 2px solid #8b4513;
         }
         .mat_phang_lon {
             display: grid;
@@ -46,43 +46,43 @@
             position: relative;
             z-index: 1; 
         }
-        /* PHONG CÁCH QUÂN CỜ CÁCH ĐIỆU */
+        /* QUÂN CỜ CÁCH ĐIỆU CAO CẤP */
         .cuc_tron_co {
-            width: 52px;
-            height: 52px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 28px;
+            font-size: 30px;
             font-family: "SimSun", "HanWangYen", serif;
-            box-shadow: 2px 4px 8px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
             user-select: none;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
         }
         /* Nền Đen chữ Trắng cho Người chơi */
-        .phe_den { background-color: #1a1a1a; color: #ffffff; border: 2px solid #444; } 
+        .loai_quan_den { background-color: #1a1a1a; color: #ffffff; border: 2px solid #555; } 
         /* Nền Đỏ chữ Vàng cho AI */
-        .phe_do { background-color: #cc0000; color: #ffd700; border: 2px solid #8b0000; } 
+        .loai_quan_do { background-color: #b30000; color: #ffd700; border: 2px solid #8b0000; } 
         
-        .dang_duoc_chon { transform: scale(1.15); box-shadow: 0 0 20px #00ff00; border-color: #00ff00; }
-        .khu_vuc_thong_bao { margin-bottom: 25px; font-size: 26px; font-weight: bold; color: #2c3e50; text-transform: uppercase; text-align: center; }
+        .dang_duoc_chon { transform: scale(1.1); box-shadow: 0 0 20px #2ecc71; border-color: #2ecc71; }
+        .khu_vuc_thong_bao { margin-bottom: 20px; font-size: 28px; font-weight: bold; color: #2c3e50; text-transform: uppercase; text-align: center; }
         
-        #nut_lam_moi {
-            margin-top: 20px;
-            padding: 12px 30px;
+        #nut_reset {
+            margin-top: 25px;
+            padding: 12px 35px;
             font-size: 18px;
             font-weight: bold;
-            background-color: #27ae60;
+            background: linear-gradient(to bottom, #27ae60, #1e8449);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
             display: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        #nut_lam_moi:hover { background-color: #219150; }
+        #nut_reset:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
@@ -93,26 +93,26 @@
         <div class="mat_phang_lon" id="vung_ve_hinh"></div>
     </div>
     
-    <button id="nut_lam_moi" onclick="khoi_dong_lai()">Bắt đầu ván mới</button>
+    <button id="nut_reset" onclick="khoi_tao_he_thong()">Bắt đầu ván mới</button>
 
     <script>
         // ==========================================
-        // KHỐI 1: CẤU HÌNH DỮ LIỆU CƠ SỞ
+        // KHỐI 1: QUẢN LÝ DỮ LIỆU VÀ CẤU HÌNH AI
         // ==========================================
-        const tu_dien_hien_thi = {
+        const tu_hien_thi = {
             "D_Xe": "俥", "D_Ma": "傌", "D_Tuong": "相", "D_Si": "仕", "D_Vua": "帥", "D_Phao": "炮", "D_Tot": "兵",
             "X_Xe": "車", "X_Ma": "馬", "X_Tuong": "象", "X_Si": "士", "X_Vua": "將", "X_Phao": "砲", "X_Tot": "卒"
         };
 
-        const gia_tri_quan_co = { "Xe": 900, "Phao": 450, "Ma": 400, "Tuong": 200, "Si": 200, "Tot": 100, "Vua": 10000 };
+        const diem_so_quan = { "Xe": 900, "Phao": 450, "Ma": 400, "Tuong": 200, "Si": 200, "Tot": 100, "Vua": 20000 };
 
-        let mang_du_lieu_ban_co = [];
-        let luot_di_hien_tai = "X"; 
-        let muc_tieu_hang = -1, muc_tieu_cot = -1;
-        let trang_thai_ket_thuc = false;
+        let ma_tran_co = [];
+        let luot_di = "X"; 
+        let hang_dang_chon = -1, cot_dang_chon = -1;
+        let da_ket_thuc = false;
 
-        function khoi_dong_lai() {
-            mang_du_lieu_ban_co = [
+        function khoi_tao_he_thong() {
+            ma_tran_co = [
                 ["D_Xe", "D_Ma", "D_Tuong", "D_Si", "D_Vua", "D_Si", "D_Tuong", "D_Ma", "D_Xe"],
                 ["", "", "", "", "", "", "", "", ""],
                 ["", "D_Phao", "", "", "", "", "", "D_Phao", ""],
@@ -124,17 +124,17 @@
                 ["", "", "", "", "", "", "", "", ""],
                 ["X_Xe", "X_Ma", "X_Tuong", "X_Si", "X_Vua", "X_Si", "X_Tuong", "X_Ma", "X_Xe"]
             ];
-            luot_di_hien_tai = "X";
-            trang_thai_ket_thuc = false;
-            muc_tieu_hang = -1; muc_tieu_cot = -1;
-            document.getElementById("nut_lam_moi").style.display = "none";
-            cap_nhat_giao_dien();
+            luot_di = "X";
+            da_ket_thuc = false;
+            hang_dang_chon = -1; cot_dang_chon = -1;
+            document.getElementById("nut_reset").style.display = "none";
+            ve_giao_dien();
         }
 
         // ==========================================
         // KHỐI 2: LOGIC LUẬT CHƠI CHI TIẾT
         // ==========================================
-        function dem_vat_can_duong_thang(ban_co, h1, c1, h2, c2) {
+        function dem_vat_can(ban_co, h1, c1, h2, c2) {
             let dem = 0;
             if (h1 === h2) {
                 for (let c = Math.min(c1, c2) + 1; c < Math.max(c1, c2); c++) if (ban_co[h1][c] !== "") dem++;
@@ -144,10 +144,9 @@
             return dem;
         }
 
-        function xet_duong_di_hop_le(ban_co, hg, cg, hd, cd, phe) {
+        function luat_di_chuyen(ban_co, hg, cg, hd, cd, phe) {
             let q_goc = ban_co[hg][cg];
             let q_dich = ban_co[hd][cd];
-            if (hg === hd && cg === cd) return false;
             if (q_dich !== "" && q_dich.startsWith(phe)) return false;
 
             let loai = q_goc.substring(2);
@@ -155,9 +154,9 @@
             let kc = Math.abs(cd - cg);
 
             switch(loai) {
-                case "Xe": return (kh === 0 || kc === 0) && dem_vat_can_duong_thang(ban_co, hg, cg, hd, cd) === 0;
+                case "Xe": return (kh === 0 || kc === 0) && dem_vat_can(ban_co, hg, cg, hd, cd) === 0;
                 case "Phao": 
-                    let vc = dem_vat_can_duong_thang(ban_co, hg, cg, hd, cd);
+                    let vc = dem_vat_can(ban_co, hg, cg, hd, cd);
                     return (kh === 0 || kc === 0) && ((q_dich === "" && vc === 0) || (q_dich !== "" && vc === 1));
                 case "Ma":
                     if (kh === 2 && kc === 1 && ban_co[hg + (hd-hg)/2][cg] === "") return true;
@@ -172,158 +171,142 @@
                 case "Si": return kh === 1 && kc === 1 && cd >= 3 && cd <= 5 && ((phe === "X" && hd >= 7) || (phe === "D" && hd <= 2));
                 case "Vua": return (kh + kc === 1) && cd >= 3 && cd <= 5 && ((phe === "X" && hd >= 7) || (phe === "D" && hd <= 2));
                 case "Tot":
-                    let tien = (phe === "X") ? -1 : 1;
-                    if (hd - hg === tien && kc === 0) return true;
-                    let da_qua_song = (phe === "X") ? (hg <= 4) : (hg >= 5);
-                    return da_qua_song && kh === 0 && kc === 1;
-                default: return false;
-            }
-        }
-
-        function xet_lo_mat_vua(ban_co) {
-            let hd = -1, cd = -1, hx = -1, cx = -1;
-            for (let h = 0; h < 10; h++) {
-                for (let c = 3; c <= 5; c++) {
-                    if (ban_co[h][c] === "D_Vua") { hd = h; cd = c; }
-                    if (ban_co[h][c] === "X_Vua") { hx = h; cx = c; }
-                }
-            }
-            if (cd === cx && cd !== -1) {
-                let dem = 0;
-                for (let h = hd + 1; h < hx; h++) if (ban_co[h][cd] !== "") dem++;
-                return dem === 0;
+                    let t = (phe === "X") ? -1 : 1;
+                    if (hd - hg === t && kc === 0) return true;
+                    let s = (phe === "X") ? (hg <= 4) : (hg >= 5);
+                    return s && kh === 0 && kc === 1;
             }
             return false;
         }
 
-        function lay_buoc_di_an_toan(ban_co, hg, cg, hd, cd, phe) {
-            if (!xet_duong_di_hop_le(ban_co, hg, cg, hd, cd, phe)) return false;
+        function nuoc_di_an_toan(ban_co, hg, cg, hd, cd, phe) {
+            if (!luat_di_chuyen(ban_co, hg, cg, hd, cd, phe)) return false;
             let gia_lap = JSON.parse(JSON.stringify(ban_co));
             gia_lap[hd][cd] = gia_lap[hg][cg]; gia_lap[hg][cg] = "";
-            if (xet_lo_mat_vua(gia_lap)) return false;
             
+            // Chống lộ mặt tướng
+            let hd_v = -1, cd_v = -1, hx_v = -1, cx_v = -1;
+            for(let h=0; h<10; h++) for(let c=3; c<=5; c++) {
+                if(gia_lap[h][c] === "D_Vua") { hd_v=h; cd_v=c; }
+                if(gia_lap[h][c] === "X_Vua") { hx_v=h; cx_v=c; }
+            }
+            if(cd_v === cx_v && dem_vat_can(gia_lap, hd_v, cd_v, hx_v, cx_v) === 0) return false;
+
+            // Kiểm tra bị chiếu sau khi đi
             let phe_dich = (phe === "X") ? "D" : "X";
             let hv = -1, cv = -1;
             for(let h=0; h<10; h++) for(let c=0; c<9; c++) if(gia_lap[h][c] === phe+"_Vua") { hv=h; cv=c; }
             for(let h=0; h<10; h++) for(let c=0; c<9; c++) if(gia_lap[h][c].startsWith(phe_dich)) 
-                if(xet_duong_di_hop_le(gia_lap, h, c, hv, cv, phe_dich)) return false;
+                if(luat_di_chuyen(gia_lap, h, c, hv, cv, phe_dich)) return false;
             return true;
         }
 
-        function quet_toan_bo_nuoc_di(ban_co, phe) {
+        function quet_nuoc_di_hop_le(ban_co, phe) {
             let ds = [];
             for(let hg=0; hg<10; hg++) for(let cg=0; cg<9; cg++) if(ban_co[hg][cg].startsWith(phe))
                 for(let hd=0; hd<10; hd++) for(let cd=0; cd<9; cd++) 
-                    if(lay_buoc_di_an_toan(ban_co, hg, cg, hd, cd, phe)) ds.push({hg, cg, hd, cd});
+                    if(nuoc_di_an_toan(ban_co, hg, cg, hd, cd, phe)) ds.push({hg, cg, hd, cd});
             return ds;
         }
 
         // ==========================================
-        // KHỐI 3: TRÍ TUỆ NHÂN TẠO (AI MINIMAX)
+        // KHỐI 3: TRÍ TUỆ NHÂN TẠO (AI)
         // ==========================================
-        function danh_gia_the_tran(ban_co) {
-            let diem = 0;
-            for(let h=0; h<10; h++) for(let c=0; c<9; c++) {
-                let q = ban_co[h][c]; if(q === "") continue;
-                let g = gia_tri_quan_co[q.substring(2)];
-                diem += (q.startsWith("D")) ? g : -g;
-            }
-            return diem;
-        }
-
         function ai_suy_nghi() {
-            if (trang_thai_ket_thuc) return;
-            let ds = quet_toan_bo_nuoc_di(mang_du_lieu_ban_co, "D");
-            if (ds.length === 0) { ket_thuc_tran(false); return; }
+            if (da_ket_thuc) return;
+            let ds = quet_nuoc_di_hop_le(ma_tran_co, "D");
+            if (ds.length === 0) { xu_ly_thang_thua(false); return; }
             
-            ds.sort(() => Math.random() - 0.5);
             let tot_nhat = null, diem_max = -Infinity;
+            ds.sort(() => Math.random() - 0.5);
             for(let nd of ds) {
-                let ban_co_thu = JSON.parse(JSON.stringify(mang_du_lieu_ban_co));
-                ban_co_thu[nd.hd][nd.cd] = ban_co_thu[nd.hg][nd.cg]; ban_co_thu[nd.hg][nd.cg] = "";
-                let d = danh_gia_the_tran(ban_co_thu);
+                let thu = JSON.parse(JSON.stringify(ma_tran_co));
+                let gia_tri_an = (thu[nd.hd][nd.cd] !== "") ? diem_so_quan[thu[nd.hd][nd.cd].substring(2)] : 0;
+                thu[nd.hd][nd.cd] = thu[nd.hg][nd.cg]; thu[nd.hg][nd.cg] = "";
+                
+                let d = gia_tri_an; // Chiến thuật ăn quân điểm cao nhất
                 if(d > diem_max) { diem_max = d; tot_nhat = nd; }
             }
             
-            mang_du_lieu_ban_co[tot_nhat.hd][tot_nhat.cd] = mang_du_lieu_ban_co[tot_nhat.hg][tot_nhat.cg];
-            mang_du_lieu_ban_co[tot_nhat.hg][tot_nhat.cg] = "";
-            luot_di_hien_tai = "X";
-            if (quet_toan_bo_nuoc_di(mang_du_lieu_ban_co, "X").length === 0) ket_thuc_tran(true);
-            cap_nhat_giao_dien();
+            ma_tran_co[tot_nhat.hd][tot_nhat.cd] = ma_tran_co[tot_nhat.hg][tot_nhat.cg];
+            ma_tran_co[tot_nhat.hg][tot_nhat.cg] = "";
+            luot_di = "X";
+            if (quet_nuoc_di_hop_le(ma_tran_co, "X").length === 0) xu_ly_thang_thua(true);
+            ve_giao_dien();
         }
 
-        function ket_thuc_tran(ai_thang) {
-            trang_thai_ket_thuc = true;
-            document.getElementById("nut_lam_moi").style.display = "block";
-            document.getElementById("dong_chu_bao_cao").innerText = ai_thang ? "HẾT CỜ! AI CHIẾN THẮNG" : "HẾT CỜ! BẠN CHIẾN THẮNG";
+        function xu_ly_thang_thua(ai_thang) {
+            da_ket_thuc = true;
+            document.getElementById("nut_reset").style.display = "block";
+            document.getElementById("dong_chu_bao_cao").innerText = ai_thang ? "HẾT CỜ! AI THÁCH ĐẤU THÀNH CÔNG" : "HẾT CỜ! BẠN ĐÃ THẮNG AI";
         }
 
         // ==========================================
-        // KHỐI 4: GIAO DIỆN ĐỒ HỌA SVG & TƯƠNG TÁC
+        // KHỐI 4: GIAO DIỆN ĐỒ HỌA SVG CHUẨN XÁC
         // ==========================================
-        function cap_nhat_giao_dien() {
+        function ve_giao_dien() {
             let vung = document.getElementById("vung_ve_hinh");
             vung.innerHTML = "";
 
             let svg = `<svg class="duong_ke_vec_to" width="540" height="600">
-                <defs><filter id="f1" x="0" y="0" width="200%" height="200%"><feOffset result="offOut" in="SourceAlpha" dx="2" dy="2" /><feGaussianBlur result="blurOut" in="offOut" stdDeviation="2" /><feBlend in="SourceGraphic" in2="blurOut" mode="normal" /></filter></defs>
+                <defs><filter id="bong_chu" x="0" y="0" width="150%" height="150%"><feOffset result="off" in="SourceAlpha" dx="2" dy="2" /><feGaussianBlur result="blur" in="off" stdDeviation="1.5" /><feBlend in="SourceGraphic" in2="blur" mode="normal" /></filter></defs>
                 <rect x="25" y="25" width="490" height="550" fill="none" stroke="#000" stroke-width="4"/>
                 <rect x="30" y="30" width="480" height="540" fill="none" stroke="#000" stroke-width="2"/>`;
             
-            for(let i=0; i<10; i++) svg += `<line x1="30" y1="${30+i*60}" x2="510" y2="${30+i*60}" stroke="#000" stroke-width="2"/>`;
+            for(let i=0; i<10; i++) svg += `<line x1="30" y1="${30+i*60}" x2="510" y2="${30+i*60}" stroke="#000" stroke-width="1.5"/>`;
             for(let i=0; i<9; i++) {
                 let x = 30+i*60;
-                if(i===0 || i===8) svg += `<line x1="${x}" y1="30" x2="${x}" y2="570" stroke="#000" stroke-width="2"/>`;
-                else { svg += `<line x1="${x}" y1="30" x2="${x}" y2="270" stroke="#000" stroke-width="2"/>`; svg += `<line x1="${x}" y1="330" x2="${x}" y2="570" stroke="#000" stroke-width="2"/>`; }
+                if(i===0 || i===8) svg += `<line x1="${x}" y1="30" x2="${x}" y2="570" stroke="#000" stroke-width="1.5"/>`;
+                else { svg += `<line x1="${x}" y1="30" x2="${x}" y2="270" stroke="#000" stroke-width="1.5"/>`; svg += `<line x1="${x}" y1="330" x2="${x}" y2="570" stroke="#000" stroke-width="1.5"/>`; }
             }
-            svg += `<path d="M 210 30 L 330 150 M 330 30 L 210 150 M 210 450 L 330 570 M 330 450 L 210 570" stroke="#000" stroke-width="2" />`;
+            svg += `<path d="M 210 30 L 330 150 M 330 30 L 210 150 M 210 450 L 330 570 M 330 450 L 210 570" stroke="#000" stroke-width="1.5" />`;
             
-            [[2,1],[2,7],[7,1],[7,7],[3,0],[3,2],[3,4],[3,6],[3,8],[6,0],[6,2],[6,4],[6,6],[6,8]].forEach(vt => {
-                let x = 30+vt[1]*60, y = 30+vt[0]*60, d=5, l=12;
-                if(vt[1]>0) svg += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/> <polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
-                if(vt[1]<8) svg += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="2"/> <polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="2"/>`;
+            [[2,1],[2,7],[7,1],[7,7],[3,0],[3,2],[3,4],[3,6],[3,8],[6,0],[6,2],[6,4],[6,6],[6,8]].forEach(v => {
+                let x = 30+v[1]*60, y = 30+v[0]*60, d=6, l=12;
+                if(v[1]>0) svg += `<polyline points="${x-d-l},${y-d} ${x-d},${y-d} ${x-d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x-d-l},${y+d} ${x-d},${y+d} ${x-d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+                if(v[1]<8) svg += `<polyline points="${x+d+l},${y-d} ${x+d},${y-d} ${x+d},${y-d-l}" fill="none" stroke="#000" stroke-width="1.5"/> <polyline points="${x+d+l},${y+d} ${x+d},${y+d} ${x+d},${y+d+l}" fill="none" stroke="#000" stroke-width="1.5"/>`;
             });
 
-            svg += `<text x="270" y="308" font-size="30" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="10" fill="#2c3e50" filter="url(#f1)">NGỌC LÂM THÁCH ĐẤU</text></svg>`;
+            svg += `<text x="270" y="308" font-size="32" font-family="'Times New Roman', serif" font-weight="bold" text-anchor="middle" letter-spacing="12" fill="#2c3e50" filter="url(#bong_chu)">NGỌC LÂM THÁCH ĐẤU</text></svg>`;
             vung.insertAdjacentHTML('beforeend', svg);
 
             for(let h=0; h<10; h++) for(let c=0; c<9; c++) {
                 let o = document.createElement("div"); o.className = "o_vuong_nho";
-                o.onclick = () => xu_ly_bam_o(h, c);
-                let q = mang_du_lieu_ban_co[h][c];
+                o.onclick = () => xu_ly_bam(h, c);
+                let q = ma_tran_co[h][c];
                 if(q !== "") {
                     let hinh = document.createElement("div");
-                    hinh.className = "cuc_tron_co " + (q.startsWith("X") ? "phe_den" : "phe_do");
-                    hinh.innerText = tu_dien_hien_thi[q];
-                    if(h === muc_tieu_hang && c === muc_tieu_cot) hinh.classList.add("dang_duoc_chon");
+                    hinh.className = "cuc_tron_co " + (q.startsWith("X") ? "loai_quan_den" : "loai_quan_do");
+                    hinh.innerText = tu_hien_thi[q];
+                    if(h === hang_dang_chon && c === cot_dang_chon) hinh.classList.add("dang_duoc_chon");
                     o.appendChild(hinh);
                 }
                 vung.appendChild(o);
             }
-            if(!trang_thai_ket_thuc) document.getElementById("dong_chu_bao_cao").innerText = luot_di_hien_tai==="X" ? "Lượt của: Người chơi (Đen)" : "Lượt của: AI (Đang suy nghĩ...)";
+            if(!da_ket_thuc) document.getElementById("dong_chu_bao_cao").innerText = luot_di==="X" ? "Lượt của: Người chơi (Đen)" : "Lượt của: AI (Đang suy nghĩ...)";
         }
 
-        function xu_ly_bam_o(h, c) {
-            if(luot_di_hien_tai !== "X" || trang_thai_ket_thuc) return;
-            let q = mang_du_lieu_ban_co[h][c];
-            if(muc_tieu_hang === -1) {
-                if(q.startsWith("X")) { muc_tieu_hang = h; muc_tieu_cot = c; cap_nhat_giao_dien(); }
+        function xu_ly_bam(h, c) {
+            if(luot_di !== "X" || da_ket_thuc) return;
+            let q = ma_tran_co[h][c];
+            if(hang_dang_chon === -1) {
+                if(q.startsWith("X")) { hang_dang_chon = h; cot_dang_chon = c; ve_giao_dien(); }
             } else {
-                if(h === muc_tieu_hang && c === muc_tieu_cot) { muc_tieu_hang = -1; muc_tieu_cot = -1; cap_nhat_giao_dien(); return; }
-                if(q.startsWith("X")) { muc_tieu_hang = h; muc_tieu_cot = c; cap_nhat_giao_dien(); return; }
+                if(h === hang_dang_chon && c === cot_dang_chon) { hang_dang_chon = -1; cot_dang_chon = -1; ve_giao_dien(); return; }
+                if(q.startsWith("X")) { hang_dang_chon = h; cot_dang_chon = c; ve_giao_dien(); return; }
                 
-                if(lay_buoc_di_an_toan(mang_du_lieu_ban_co, muc_tieu_hang, muc_tieu_cot, h, c, "X")) {
-                    mang_du_lieu_ban_co[h][c] = mang_du_lieu_ban_co[muc_tieu_hang][muc_tieu_cot];
-                    mang_du_lieu_ban_co[muc_tieu_hang][muc_tieu_cot] = "";
-                    muc_tieu_hang = -1; muc_tieu_cot = -1; luot_di_hien_tai = "D";
-                    if(quet_toan_bo_nuoc_di(mang_du_lieu_ban_co, "D").length === 0) ket_thuc_tran(false);
-                    cap_nhat_giao_dien();
-                    if(!trang_thai_ket_thuc) setTimeout(ai_suy_nghi, 500);
+                if(nuoc_di_an_toan(ma_tran_co, hang_dang_chon, cot_dang_chon, h, c, "X")) {
+                    ma_tran_co[h][c] = ma_tran_co[hang_dang_chon][cot_dang_chon];
+                    ma_tran_co[hang_dang_chon][cot_dang_chon] = "";
+                    hang_dang_chon = -1; cot_dang_chon = -1; luot_di = "D";
+                    if(quet_nuoc_di_hop_le(ma_tran_co, "D").length === 0) xu_ly_thang_thua(false);
+                    ve_giao_dien();
+                    if(!da_ket_thuc) setTimeout(ai_suy_nghi, 500);
                 }
             }
         }
 
-        khoi_dong_lai();
+        khoi_tao_he_thong();
     </script>
 </body>
 </html>
